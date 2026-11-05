@@ -9,6 +9,26 @@
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FAF7F2; color: #4A3B32; }
     .font-serif-custom { font-family: 'Playfair Display', serif; }
+
+    /* Efek Animasi Membal Tombol */
+    @keyframes btnPop {
+      0% { transform: scale(1); }
+      40% { transform: scale(0.9); }
+      70% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+    .animate-pop {
+      animation: btnPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Efek Animasi Bounce Tombol Keranjang */
+    @keyframes cartBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .animate-cart-bounce {
+      animation: cartBounce 0.4s ease-in-out;
+    }
   </style>
 </head>
 <body class="min-h-screen pb-20 relative">
@@ -163,7 +183,8 @@
       renderMenu();
     }
 
-    function addToCart(id) {
+    // PENGELOLAAN KERANJANG DENGAN ANIMASI
+    function addToCart(id, btnElement) {
       const item = menuItems.find(i => String(i.ID || i.id) === String(id));
       if (!item) return;
 
@@ -176,7 +197,22 @@
         const image = item.FOTO || item.image || "https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?w=500";
         cart.push({ id: String(id), name: fullName, price, image, qty: 1 });
       }
-      renderCartBtn();
+
+      // Animasi feedback tombol
+      if (btnElement) {
+        btnElement.classList.add("animate-pop", "bg-emerald-600", "text-white");
+        btnElement.classList.remove("bg-[#F3ECE0]", "text-[#5C4033]");
+        const originalText = btnElement.innerText;
+        btnElement.innerText = "✓ Ditambahkan";
+
+        setTimeout(() => {
+          btnElement.classList.remove("animate-pop", "bg-emerald-600", "text-white");
+          btnElement.classList.add("bg-[#F3ECE0]", "text-[#5C4033]");
+          btnElement.innerText = originalText;
+        }, 1000);
+      }
+
+      renderCartBtn(true);
     }
 
     function updateQty(id, change) {
@@ -188,7 +224,7 @@
         cart = cart.filter(i => String(i.id) !== String(id));
       }
       
-      renderCartBtn();
+      renderCartBtn(false);
       renderCartModalContent();
 
       if (cart.length === 0) {
@@ -196,12 +232,17 @@
       }
     }
 
-    function renderCartBtn() {
+    function renderCartBtn(shouldAnimate = false) {
       const container = document.getElementById("cartBtnContainer");
       const totalItems = cart.reduce((a, b) => a + b.qty, 0);
+
       if (totalItems > 0) {
         container.innerHTML = `
-          <button onclick="openCartModal()" class="bg-[#5C4033] text-white px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-2 shadow-md hover:bg-[#4A3328] transition-all">
+          <button 
+            id="mainCartBtn"
+            onclick="openCartModal()" 
+            class="bg-[#5C4033] text-white px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-2 shadow-md hover:bg-[#4A3328] transition-all ${shouldAnimate ? 'animate-cart-bounce' : ''}"
+          >
             🛒 Keranjang (${totalItems})
           </button>
         `;
@@ -348,7 +389,7 @@
               <div class="flex items-center justify-between mt-3">
                 <span class="font-bold text-sm text-[#5C4033]">Rp ${priceFormatted}</span>
                 <div class="flex gap-1">
-                  <button onclick="addToCart('${id}')" class="bg-[#F3ECE0] text-[#5C4033] px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#E6DFD5]">
+                  <button onclick="addToCart('${id}', this)" class="bg-[#F3ECE0] text-[#5C4033] px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#E6DFD5] transition-all">
                     + Keranjang
                   </button>
                   <button onclick="sendDirectWA('${id}')" class="bg-[#5C4033] text-white px-3 py-1.5 rounded-lg text-xs font-semibold">
