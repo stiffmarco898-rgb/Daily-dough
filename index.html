@@ -81,7 +81,7 @@
         cart.forEach((item, idx) => {
           const subtotal = item.price * item.qty;
           total += subtotal;
-          text += `${idx + 1}.${item.name} x${item.qty} = Rp${subtotal.toLocaleString('id-ID')}\n`;
+          text += `${idx + 1}. ${item.name} x${item.qty} = Rp${subtotal.toLocaleString('id-ID')}\n`;
         });
         text += `\n*Total Estimasi: Rp ${total.toLocaleString('id-ID')}*`;
         window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
@@ -124,4 +124,49 @@
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-
+                  className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                    selectedCategory === cat ? 'bg-[#5C4033] text-white' : 'bg-white border border-[#D9CEC1] text-[#5C4033]'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Catalog Grid */}
+          <main className="max-w-4xl mx-auto px-4 mt-6">
+            {loading ? (
+              <p className="text-center text-sm text-[#8C7A6B] py-10">Memuat katalog menu...</p>
+            ) : filteredItems.length === 0 ? (
+              <p className="text-center text-sm text-[#8C7A6B] py-10">Menu tidak ditemukan.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredItems.map(item => (
+                  <div key={item.id} className="bg-white rounded-2xl p-4 border border-[#E6DFD5] shadow-sm flex gap-4">
+                    <img 
+                      src={item.image || "https://via.placeholder.com/150"} 
+                      alt={item.name} 
+                      className="w-24 h-24 object-cover rounded-xl bg-gray-100 flex-shrink-0" 
+                    />
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-bold text-[#3D2E24] text-base">{item.name}</h3>
+                          {String(item.isAvailable).toUpperCase() === "FALSE" && (
+                            <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold">Habis</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[#7A695A] mt-1 line-clamp-2">{item.description}</p>
+                      </div>
+                      <div className="flex items-center justify-between mt-3">
+                        <span className="font-bold text-sm text-[#5C4033]">Rp {Number(item.price).toLocaleString('id-ID')}</span>
+                        <div className="flex gap-1">
+                          <button 
+                            onClick={() => addToCart(item)}
+                            className="bg-[#F3ECE0] text-[#5C4033] px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#E6DFD5]"
+                          >
+                            + Keranjang
+                          </button>
+                          <button 
+                            onClick
