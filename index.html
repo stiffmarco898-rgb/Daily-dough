@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
-<head><link rel="icon" type="image/png" href="Croissant.png">
+<head>
+  <link rel="icon" type="image/png" href="Croissant.png">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Daily Dough - A Little Joy in Every Bite</title>
@@ -154,6 +155,20 @@
       return parseInt(clean, 10) || 0;
     }
 
+    // Ekstraksi Foto (Format lh3 Google Drive / URL biasa)
+    function getPhotoUrl(item) {
+      const rawUrl = item.FOTO || item.foto || item.image || item.Image || "";
+      if (!rawUrl) return "https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?w=500";
+      
+      if (rawUrl.includes("drive.google.com/file/d/")) {
+        const match = rawUrl.match(/\/d\/([^\/]+)/);
+        if (match && match[1]) {
+          return `https://lh3.googleusercontent.com/d/${match[1]}`;
+        }
+      }
+      return rawUrl;
+    }
+
     function getFullName(item) {
       const category = item.KATEGORI || item.category || "Pastry";
       const name = item.NAMA || item.name || "Original";
@@ -194,7 +209,7 @@
       } else {
         const fullName = getFullName(item);
         const price = parsePrice(item.HARGA || item.price);
-        const image = item.FOTO || item.image || "https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?w=500";
+        const image = getPhotoUrl(item);
         cart.push({ id: String(id), name: fullName, price, image, qty: 1 });
       }
 
@@ -281,7 +296,7 @@
         total += subtotal;
         return `
           <div class="bg-white p-3 rounded-xl border border-[#E6DFD5] flex items-center gap-3">
-            <img src="${item.image}" alt="${item.name}" class="w-14 h-14 object-cover rounded-lg flex-shrink-0" />
+            <img src="${item.image}" alt="${item.name}" class="w-14 h-14 object-cover rounded-lg flex-shrink-0 bg-gray-100" />
             <div class="flex-1">
               <h4 class="font-bold text-xs text-[#3D2E24]">${item.name}</h4>
               <p class="text-xs text-[#5C4033] font-semibold mt-0.5">Rp ${subtotal.toLocaleString('id-ID')}</p>
@@ -371,7 +386,7 @@
         const displayName = item.NAMA || item.name || "Original";
         const priceNum = parsePrice(item.HARGA || item.price);
         const priceFormatted = priceNum.toLocaleString('id-ID');
-        const image = item.FOTO || item.image || "https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?w=500";
+        const image = getPhotoUrl(item);
         const isOut = String(item.STATUS || item.isAvailable).toUpperCase() === "FALSE" || String(item.STATUS).toLowerCase() === "habis";
 
         return `
@@ -383,7 +398,7 @@
                   <h3 class="font-bold text-[#3D2E24] text-base">${displayName}</h3>
                   ${isOut ? `<span class="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold">Habis</span>` : ''}
                 </div>
-                <p class="text-xs text-[#7A695A] mt-1">${item.KATEGORI || 'Salt Bread'}</p>
+                <p class="text-xs text-[#7A695A] mt-1">${item.KATEGORI || 'Pastry'}</p>
               </div>
               <div class="flex items-center justify-between mt-3">
                 <span class="font-bold text-sm text-[#5C4033]">Rp ${priceFormatted}</span>
