@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Katalog Pastry & Salt Bread</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FAF7F2; color: #4A3B32; }
+    .font-serif-custom { font-family: 'Playfair Display', serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrrbr2QRQFvzos5Q7ZsAZfrzPe1JZq-2S9RJksOc5oZd09cy2TpxfjN5uAdTyNwMEoqw/exec"; 
+    const WA_NUMBER = "6281909008736";
+
+    function App() {
+      const [menuItems, setMenuItems] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [selectedCategory, setSelectedCategory] = useState("Semua");
+      const [searchQuery, setSearchQuery] = useState("");
+      const [cart, setCart] = useState([]);
+
+      useEffect(() => {
+        if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("PASTE_URL")) {
+          setMenuItems([
+            { id: 1, name: "Original Salt Bread", category: "Salt Bread", price: 18000, description: "Salt bread renyah gurih dengan butter pilihan.", image: "https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?w=500", isAvailable: true },
+            { id: 2, name: "Butter Croissant", category: "Croissant", price: 25000, description: "Flaky dan renyah di luar, lembut di dalam.", image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500", isAvailable: true }
+          ]);
+          setLoading(false);
+          return;
+        }
+
+        fetch(APPS_SCRIPT_URL)
+          .then(res => res.json())
+          .then(data => {
+            setMenuItems(data);
+            setLoading(false);
+          })
+          .catch(err => {
+            console.error("Error fetching Google Sheets:", err);
+            setLoading(false);
+          });
+      }, []);
+
+      const categories = ["Semua", ...new Set(menuItems.map(item => item.category).filter(Boolean))];
+
+      const filteredItems = menuItems.filter(item => {
+        const matchesCategory = selectedCategory === "Semua" || item.category === selectedCategory;
+        const matchesSearch = item.name?.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+      });
+
+      const addToCart = (item) => {
+        setCart(prev => {
+          const existing = prev.find(i => i.id === item.id);
+          if (existing) {
+            return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i);
+          }
+          return [...prev, { ...item, qty: 1 }];
+        });
+      };
+
+      const sendDirectWA = (item) => {
+        const text = `Halo, saya ingin memesan *${item.name}* dengan harga Rp${Number(item.price).toLocaleString('id-ID')}. Apakah produk ini tersedia?`;
+        window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
+      };
+
+      const sendCartWA = () => {
+        if (cart.length === 0) return;
+        let text = "Halo, saya ingin pesan menu berikut:\n\n";
+        let total = 0;
+        cart.forEach((item, idx) => {
+          const subtotal = item.price * item.qty;
+          total += subtotal;
+          text += `${idx + 1}.${item.name} x${item.qty} = Rp${subtotal.toLocaleString('id-ID')}\n`;
+        });
+        text += `\n*Total Estimasi: Rp ${total.toLocaleString('id-ID')}*`;
+        window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
+      };
+
+      return (
+        <div className="min-h-screen pb-20">
+          {/* Header */}
+          <header className="bg-[#FFFDF9] border-b border-[#E6DFD5] sticky top-0 z-10 shadow-sm">
+            <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+              <div>
+                <h1 className="font-serif-custom text-2xl font-bold text-[#3D2E24]">Flour & Butter</h1>
+                <p className="text-xs text-[#8C7A6B]">Artisan Pastry & Salt Bread</p>
+              </div>
+              {cart.length > 0 && (
+                <button onClick={sendCartWA} className="bg-[#5C4033] text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-md">
+                  🛒 Pesan ({cart.reduce((a, b) => a + b.qty, 0)})
+                </button>
+              )}
+            </div>
+          </header>
+
+          {/* Banner */}
+          <section className="bg-[#F3ECE0] py-8 px-4 text-center border-b border-[#E6DFD5]">
+            <h2 className="font-serif-custom text-3xl font-bold text-[#3D2E24] mb-2">Freshly Baked Every Day</h2>
+            <p className="text-sm text-[#6E5D4F] max-w-md mx-auto">Nikmati kelembutan Salt Bread dan aneka pastry olahan bahan premium pilihan.</p>
+          </section>
+
+          {/* Search & Filter */}
+          <div className="max-w-4xl mx-auto px-4 mt-6">
+            <input 
+              type="text" 
+              placeholder="Cari menu pastry favoritmu..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full p-3 rounded-xl border border-[#D9CEC1] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
+            />
+            <div className="flex gap-2 overflow-x-auto mt-4 pb-2 scrollbar-none">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-
