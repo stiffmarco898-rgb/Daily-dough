@@ -3,170 +3,201 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Katalog Pastry & Salt Bread</title>
+  <title>Flour & Butter - Katalog Pastry</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FAF7F2; color: #4A3B32; }
     .font-serif-custom { font-family: 'Playfair Display', serif; }
   </style>
 </head>
-<body>
-  <div id="root"></div>
+<body class="min-h-screen pb-20">
 
-  <script type="text/babel">
-    const { useState, useEffect } = React;
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrrbr2QRQFvzos5Q7ZsAZfrzPe1JZq-2S9RJksOc5oZd09cy2TpxfjN5uAdTyNwMEoqw/exec"; 
+  <!-- Header -->
+  <header class="bg-[#FFFDF9] border-b border-[#E6DFD5] sticky top-0 z-10 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div>
+        <h1 class="font-serif-custom text-2xl font-bold text-[#3D2E24]">Flour & Butter</h1>
+        <p class="text-xs text-[#8C7A6B]">Artisan Pastry & Salt Bread</p>
+      </div>
+      <div id="cartBtnContainer"></div>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="bg-[#F3ECE0] py-8 px-4 text-center border-b border-[#E6DFD5]">
+    <h2 class="font-serif-custom text-3xl font-bold text-[#3D2E24] mb-2">Freshly Baked Every Day</h2>
+    <p class="text-sm text-[#6E5D4F] max-w-md mx-auto">Nikmati kelembutan Salt Bread dan aneka pastry olahan bahan premium pilihan.</p>
+  </section>
+
+  <!-- Controls (Search & Filter) -->
+  <div class="max-w-4xl mx-auto px-4 mt-6">
+    <input 
+      type="text" 
+      id="searchInput" 
+      placeholder="Cari menu pastry favoritmu..." 
+      oninput="handleSearch()"
+      class="w-full p-3 rounded-xl border border-[#D9CEC1] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
+    />
+    <div id="categoryContainer" class="flex gap-2 overflow-x-auto mt-4 pb-2 scrollbar-none"></div>
+  </div>
+
+  <!-- Menu Grid -->
+  <main class="max-w-4xl mx-auto px-4 mt-6">
+    <div id="menuGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <p class="text-center text-sm text-[#8C7A6B] py-10 col-span-full">Memuat katalog menu...</p>
+    </div>
+  </main>
+
+  <script>
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrrbr2QRQFvzos5Q7ZsAZfrzPe1JZq-2S9RJksOc5oZd09cy2TpxfjN5uAdTyNwMEoqw/exec";
     const WA_NUMBER = "6281909008736";
 
-    function App() {
-      const [menuItems, setMenuItems] = useState([]);
-      const [loading, setLoading] = useState(true);
-      const [selectedCategory, setSelectedCategory] = useState("Semua");
-      const [searchQuery, setSearchQuery] = useState("");
-      const [cart, setCart] = useState([]);
+    let menuItems = [];
+    let cart = [];
+    let selectedCategory = "Semua";
+    let searchQuery = "";
 
-      useEffect(() => {
-        if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("PASTE_URL")) {
-          setMenuItems([
-            { id: 1, name: "Original Salt Bread", category: "Salt Bread", price: 18000, description: "Salt bread renyah gurih dengan butter pilihan.", image: "https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?w=500", isAvailable: true },
-            { id: 2, name: "Butter Croissant", category: "Croissant", price: 25000, description: "Flaky dan renyah di luar, lembut di dalam.", image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500", isAvailable: true }
-          ]);
-          setLoading(false);
-          return;
+    async function init() {
+      try {
+        const res = await fetch(APPS_SCRIPT_URL);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          menuItems = data;
+        } else {
+          useFallback();
         }
+      } catch (err) {
+        console.error("Gagal koneksi Apps Script, memakai data fallback:", err);
+        useFallback();
+      }
+      renderCategories();
+      renderMenu();
+    }
 
-        fetch(APPS_SCRIPT_URL)
-          .then(res => res.json())
-          .then(data => {
-            setMenuItems(data);
-            setLoading(false);
-          })
-          .catch(err => {
-            console.error("Error fetching Google Sheets:", err);
-            setLoading(false);
-          });
-      }, []);
+    function useFallback() {
+      menuItems = [
+        { id: 1, name: "Original Salt Bread", category: "Salt Bread", price: 18000, description: "Salt bread renyah gurih dengan butter pilihan.", image: "https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?w=500", isAvailable: true },
+        { id: 2, name: "Butter Croissant", category: "Croissant", price: 25000, description: "Flaky dan renyah di luar, lembut di dalam.", image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500", isAvailable: true }
+      ];
+    }
 
-      const categories = ["Semua", ...new Set(menuItems.map(item => item.category).filter(Boolean))];
+    function renderCategories() {
+      const cats = ["Semua", ...new Set(menuItems.map(i => i.category).filter(Boolean))];
+      const container = document.getElementById("categoryContainer");
+      container.innerHTML = cats.map(cat => `
+        <button 
+          onclick="selectCategory('${cat}')"
+          class="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === cat ? 'bg-[#5C4033] text-white' : 'bg-white border border-[#D9CEC1] text-[#5C4033]'}"
+        >
+          ${cat}
+        </button>
+      `).join("");
+    }
 
-      const filteredItems = menuItems.filter(item => {
-        const matchesCategory = selectedCategory === "Semua" || item.category === selectedCategory;
-        const matchesSearch = item.name?.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesSearch;
+    function selectCategory(cat) {
+      selectedCategory = cat;
+      renderCategories();
+      renderMenu();
+    }
+
+    function handleSearch() {
+      searchQuery = document.getElementById("searchInput").value;
+      renderMenu();
+    }
+
+    function addToCart(id) {
+      const item = menuItems.find(i => String(i.id) === String(id));
+      if (!item) return;
+      
+      const existing = cart.find(i => String(i.id) === String(id));
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ ...item, qty: 1 });
+      }
+      renderCartBtn();
+    }
+
+    function renderCartBtn() {
+      const container = document.getElementById("cartBtnContainer");
+      const totalItems = cart.reduce((a, b) => a + b.qty, 0);
+      if (totalItems > 0) {
+        container.innerHTML = `
+          <button onclick="sendCartWA()" class="bg-[#5C4033] text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-md">
+            🛒 Pesan (${totalItems})
+          </button>
+        `;
+      } else {
+        container.innerHTML = "";
+      }
+    }
+
+    function sendDirectWA(id) {
+      const item = menuItems.find(i => String(i.id) === String(id));
+      if (!item) return;
+      const text = `Halo, saya ingin memesan *${item.name}* dengan harga Rp ${Number(item.price).toLocaleString('id-ID')}. Apakah produk ini tersedia?`;
+      window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function sendCartWA() {
+      if (cart.length === 0) return;
+      let text = "Halo, saya ingin pesan menu berikut:\n\n";
+      let total = 0;
+      cart.forEach((item, idx) => {
+        const subtotal = item.price * item.qty;
+        total += subtotal;
+        text += `${idx + 1}. ${item.name} x${item.qty} = Rp ${subtotal.toLocaleString('id-ID')}\n`;
+      });
+      text += `\n*Total Estimasi: Rp ${total.toLocaleString('id-ID')}*`;
+      window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function renderMenu() {
+      const grid = document.getElementById("menuGrid");
+      const filtered = menuItems.filter(item => {
+        const matchCat = selectedCategory === "Semua" || item.category === selectedCategory;
+        const matchSearch = item.name ? item.name.toLowerCase().includes(searchQuery.toLowerCase()) : true;
+        return matchCat && matchSearch;
       });
 
-      const addToCart = (item) => {
-        setCart(prev => {
-          const existing = prev.find(i => i.id === item.id);
-          if (existing) {
-            return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i);
-          }
-          return [...prev, { ...item, qty: 1 }];
-        });
-      };
+      if (filtered.length === 0) {
+        grid.innerHTML = `<p class="text-center text-sm text-[#8C7A6B] py-10 col-span-full">Menu tidak ditemukan.</p>`;
+        return;
+      }
 
-      const sendDirectWA = (item) => {
-        const text = `Halo, saya ingin memesan *${item.name}* dengan harga Rp${Number(item.price).toLocaleString('id-ID')}. Apakah produk ini tersedia?`;
-        window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
-      };
-
-      const sendCartWA = () => {
-        if (cart.length === 0) return;
-        let text = "Halo, saya ingin pesan menu berikut:\n\n";
-        let total = 0;
-        cart.forEach((item, idx) => {
-          const subtotal = item.price * item.qty;
-          total += subtotal;
-          text += `${idx + 1}. ${item.name} x${item.qty} = Rp${subtotal.toLocaleString('id-ID')}\n`;
-        });
-        text += `\n*Total Estimasi: Rp ${total.toLocaleString('id-ID')}*`;
-        window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
-      };
-
-      return (
-        <div className="min-h-screen pb-20">
-          {/* Header */}
-          <header className="bg-[#FFFDF9] border-b border-[#E6DFD5] sticky top-0 z-10 shadow-sm">
-            <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      grid.innerHTML = filtered.map(item => {
+        const isOut = String(item.isAvailable).toUpperCase() === "FALSE";
+        const priceFormatted = Number(item.price || 0).toLocaleString('id-ID');
+        return `
+          <div class="bg-white rounded-2xl p-4 border border-[#E6DFD5] shadow-sm flex gap-4">
+            <img src="${item.image || 'https://via.placeholder.com/150'}" alt="${item.name}" class="w-24 h-24 object-cover rounded-xl bg-gray-100 flex-shrink-0" />
+            <div class="flex-1 flex flex-col justify-between">
               <div>
-                <h1 className="font-serif-custom text-2xl font-bold text-[#3D2E24]">Flour & Butter</h1>
-                <p className="text-xs text-[#8C7A6B]">Artisan Pastry & Salt Bread</p>
+                <div class="flex justify-between items-start">
+                  <h3 class="font-bold text-[#3D2E24] text-base">${item.name}</h3>
+                  ${isOut ? `<span class="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold">Habis</span>` : ''}
+                </div>
+                <p class="text-xs text-[#7A695A] mt-1 line-clamp-2">${item.description || ''}</p>
               </div>
-              {cart.length > 0 && (
-                <button onClick={sendCartWA} className="bg-[#5C4033] text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-md">
-                  🛒 Pesan ({cart.reduce((a, b) => a + b.qty, 0)})
-                </button>
-              )}
-            </div>
-          </header>
-
-          {/* Banner */}
-          <section className="bg-[#F3ECE0] py-8 px-4 text-center border-b border-[#E6DFD5]">
-            <h2 className="font-serif-custom text-3xl font-bold text-[#3D2E24] mb-2">Freshly Baked Every Day</h2>
-            <p className="text-sm text-[#6E5D4F] max-w-md mx-auto">Nikmati kelembutan Salt Bread dan aneka pastry olahan bahan premium pilihan.</p>
-          </section>
-
-          {/* Search & Filter */}
-          <div className="max-w-4xl mx-auto px-4 mt-6">
-            <input 
-              type="text" 
-              placeholder="Cari menu pastry favoritmu..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 rounded-xl border border-[#D9CEC1] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
-            />
-            <div className="flex gap-2 overflow-x-auto mt-4 pb-2 scrollbar-none">
-              {categories.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-                    selectedCategory === cat ? 'bg-[#5C4033] text-white' : 'bg-white border border-[#D9CEC1] text-[#5C4033]'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+              <div class="flex items-center justify-between mt-3">
+                <span class="font-bold text-sm text-[#5C4033]">Rp ${priceFormatted}</span>
+                <div class="flex gap-1">
+                  <button onclick="addToCart('${item.id}')" class="bg-[#F3ECE0] text-[#5C4033] px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#E6DFD5]">
+                    + Keranjang
+                  </button>
+                  <button onclick="sendDirectWA('${item.id}')" class="bg-[#5C4033] text-white px-3 py-1.5 rounded-lg text-xs font-semibold">
+                    Pesan
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
+        `;
+      }).join("");
+    }
 
-          {/* Catalog Grid */}
-          <main className="max-w-4xl mx-auto px-4 mt-6">
-            {loading ? (
-              <p className="text-center text-sm text-[#8C7A6B] py-10">Memuat katalog menu...</p>
-            ) : filteredItems.length === 0 ? (
-              <p className="text-center text-sm text-[#8C7A6B] py-10">Menu tidak ditemukan.</p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredItems.map(item => (
-                  <div key={item.id} className="bg-white rounded-2xl p-4 border border-[#E6DFD5] shadow-sm flex gap-4">
-                    <img 
-                      src={item.image || "https://via.placeholder.com/150"} 
-                      alt={item.name} 
-                      className="w-24 h-24 object-cover rounded-xl bg-gray-100 flex-shrink-0" 
-                    />
-                    <div className="flex-1 flex flex-col justify-between">
-                      <div>
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-bold text-[#3D2E24] text-base">{item.name}</h3>
-                          {String(item.isAvailable).toUpperCase() === "FALSE" && (
-                            <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold">Habis</span>
-                          )}
-                        </div>
-                        <p className="text-xs text-[#7A695A] mt-1 line-clamp-2">{item.description}</p>
-                      </div>
-                      <div className="flex items-center justify-between mt-3">
-                        <span className="font-bold text-sm text-[#5C4033]">Rp {Number(item.price).toLocaleString('id-ID')}</span>
-                        <div className="flex gap-1">
-                          <button 
-                            onClick={() => addToCart(item)}
-                            className="bg-[#F3ECE0] text-[#5C4033] px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#E6DFD5]"
-                          >
-                            + Keranjang
-                          </button>
-                          <button 
-                            onClick
+    init();
+  </script>
+</body>
+</html>
