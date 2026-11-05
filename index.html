@@ -30,12 +30,12 @@
     <p class="text-sm text-[#6E5D4F] max-w-md mx-auto">Nikmati kelembutan Salt Bread dan aneka pastry olahan bahan premium pilihan.</p>
   </section>
 
-  <!-- Controls (Search & Filter) -->
+  <!-- Filter & Search -->
   <div class="max-w-4xl mx-auto px-4 mt-6">
     <input 
       type="text" 
       id="searchInput" 
-      placeholder="Cari menu pastry favoritmu..." 
+      placeholder="Cari menu salt bread favoritmu..." 
       oninput="handleSearch()"
       class="w-full p-3 rounded-xl border border-[#D9CEC1] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
     />
@@ -64,26 +64,24 @@
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           menuItems = data;
-        } else {
-          useFallback();
         }
       } catch (err) {
-        console.error("Gagal koneksi Apps Script, memakai data fallback:", err);
-        useFallback();
+        console.error("Gagal mengambil data dari Google Sheets:", err);
       }
       renderCategories();
       renderMenu();
     }
 
-    function useFallback() {
-      menuItems = [
-        { id: 1, name: "Original Salt Bread", category: "Salt Bread", price: 18000, description: "Salt bread renyah gurih dengan butter pilihan.", image: "https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?w=500", isAvailable: true },
-        { id: 2, name: "Butter Croissant", category: "Croissant", price: 25000, description: "Flaky dan renyah di luar, lembut di dalam.", image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500", isAvailable: true }
-      ];
+    // Membersihkan format string harga seperti "Rp9,000" atau "12.500" menjadi angka murni
+    function parsePrice(val) {
+      if (typeof val === 'number') return val;
+      if (!val) return 0;
+      const clean = String(val).replace(/[^0-9]/g, '');
+      return parseInt(clean, 10) || 0;
     }
 
     function renderCategories() {
-      const cats = ["Semua", ...new Set(menuItems.map(i => i.category).filter(Boolean))];
+      const cats = ["Semua", ...new Set(menuItems.map(i => i.KATEGORI || i.category).filter(Boolean))];
       const container = document.getElementById("categoryContainer");
       container.innerHTML = cats.map(cat => `
         <button 
@@ -107,14 +105,16 @@
     }
 
     function addToCart(id) {
-      const item = menuItems.find(i => String(i.id) === String(id));
+      const item = menuItems.find(i => String(i.ID || i.id) === String(id));
       if (!item) return;
       
       const existing = cart.find(i => String(i.id) === String(id));
       if (existing) {
         existing.qty += 1;
       } else {
-        cart.push({ ...item, qty: 1 });
+        const name = item.NAMA || item.name || "Produk";
+        const price = parsePrice(item.HARGA || item.price);
+        cart.push({ id: String(id), name, price, qty: 1 });
       }
       renderCartBtn();
     }
@@ -134,9 +134,11 @@
     }
 
     function sendDirectWA(id) {
-      const item = menuItems.find(i => String(i.id) === String(id));
+      const item = menuItems.find(i => String(i.ID || i.id) === String(id));
       if (!item) return;
-      const text = `Halo, saya ingin memesan *${item.name}* dengan harga Rp ${Number(item.price).toLocaleString('id-ID')}. Apakah produk ini tersedia?`;
+      const name = item.NAMA || item.name || "Produk";
+      const price = parsePrice(item.HARGA || item.price);
+      const text = `Halo, saya ingin memesan *${name}* dengan harga Rp ${price.toLocaleString('id-ID')}. Apakah produk ini tersedia?`;
       window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
     }
 
@@ -156,8 +158,11 @@
     function renderMenu() {
       const grid = document.getElementById("menuGrid");
       const filtered = menuItems.filter(item => {
-        const matchCat = selectedCategory === "Semua" || item.category === selectedCategory;
-        const matchSearch = item.name ? item.name.toLowerCase().includes(searchQuery.toLowerCase()) : true;
+        const name = item.NAMA || item.name || "";
+        const category = item.KATEGORI || item.category || "";
+        
+        const matchCat = selectedCategory === "Semua" || category === selectedCategory;
+        const matchSearch = name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchCat && matchSearch;
       });
 
@@ -167,26 +172,31 @@
       }
 
       grid.innerHTML = filtered.map(item => {
-        const isOut = String(item.isAvailable).toUpperCase() === "FALSE";
-        const priceFormatted = Number(item.price || 0).toLocaleString('id-ID');
+        const id = item.ID || item.id;
+        const name = item.NAMA || item.name || "Salt Bread";
+        const priceNum = parsePrice(item.HARGA || item.price);
+        const priceFormatted = priceNum.toLocaleString('id-ID');
+        const image = item.FOTO || item.image || "https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?w=500";
+        const isOut = String(item.STATUS || item.isAvailable).toUpperCase() === "FALSE" || String(item.STATUS).toLowerCase() === "habis";
+
         return `
           <div class="bg-white rounded-2xl p-4 border border-[#E6DFD5] shadow-sm flex gap-4">
-            <img src="${item.image || 'https://via.placeholder.com/150'}" alt="${item.name}" class="w-24 h-24 object-cover rounded-xl bg-gray-100 flex-shrink-0" />
+            <img src="${image}" alt="${name}" class="w-24 h-24 object-cover rounded-xl bg-gray-100 flex-shrink-0" />
             <div class="flex-1 flex flex-col justify-between">
               <div>
                 <div class="flex justify-between items-start">
-                  <h3 class="font-bold text-[#3D2E24] text-base">${item.name}</h3>
+                  <h3 class="font-bold text-[#3D2E24] text-base">${name}</h3>
                   ${isOut ? `<span class="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold">Habis</span>` : ''}
                 </div>
-                <p class="text-xs text-[#7A695A] mt-1 line-clamp-2">${item.description || ''}</p>
+                <p class="text-xs text-[#7A695A] mt-1">Salt Bread Premium</p>
               </div>
               <div class="flex items-center justify-between mt-3">
                 <span class="font-bold text-sm text-[#5C4033]">Rp ${priceFormatted}</span>
                 <div class="flex gap-1">
-                  <button onclick="addToCart('${item.id}')" class="bg-[#F3ECE0] text-[#5C4033] px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#E6DFD5]">
+                  <button onclick="addToCart('${id}')" class="bg-[#F3ECE0] text-[#5C4033] px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#E6DFD5]">
                     + Keranjang
                   </button>
-                  <button onclick="sendDirectWA('${item.id}')" class="bg-[#5C4033] text-white px-3 py-1.5 rounded-lg text-xs font-semibold">
+                  <button onclick="sendDirectWA('${id}')" class="bg-[#5C4033] text-white px-3 py-1.5 rounded-lg text-xs font-semibold">
                     Pesan
                   </button>
                 </div>
