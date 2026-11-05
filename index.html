@@ -49,6 +49,36 @@
     </div>
   </main>
 
+  <!-- MODAL / POPUP KERANJANG -->
+  <div id="cartModal" class="fixed inset-0 bg-black/50 z-50 flex justify-end hidden transition-opacity">
+    <div class="bg-[#FAF7F2] w-full max-w-md h-full flex flex-col shadow-2xl">
+      <!-- Modal Header -->
+      <div class="p-4 bg-[#FFFDF9] border-b border-[#E6DFD5] flex justify-between items-center">
+        <div>
+          <h3 class="font-serif-custom font-bold text-lg text-[#3D2E24]">Keranjang Pesanan</h3>
+          <p class="text-xs text-[#8C7A6B]">Periksa detail item sebelum checkout</p>
+        </div>
+        <button onclick="closeCartModal()" class="text-[#8C7A6B] hover:text-[#3D2E24] text-xl font-bold p-2">✕</button>
+      </div>
+
+      <!-- Cart Items List -->
+      <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+        <!-- Item keranjang di-render via JS -->
+      </div>
+
+      <!-- Modal Footer / Total & Checkout -->
+      <div class="p-4 bg-[#FFFDF9] border-t border-[#E6DFD5]">
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-sm text-[#7A695A] font-medium">Total Estimasi</span>
+          <span id="cartTotalPrice" class="text-lg font-bold text-[#5C4033]">Rp 0</span>
+        </div>
+        <button onclick="sendCartWA()" class="w-full bg-[#25D366] text-white py-3 rounded-xl font-bold text-sm shadow-md hover:bg-[#1EBE57] transition-all flex items-center justify-center gap-2">
+          💬 Pesan via WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrrbr2QRQFvzos5Q7ZsAZfrzPe1JZq-2S9RJksOc5oZd09cy2TpxfjN5uAdTyNwMEoqw/exec";
     const WA_NUMBER = "6281909008736";
@@ -72,7 +102,6 @@
       renderMenu();
     }
 
-    // Membersihkan format string harga seperti "Rp9,000" atau "12.500" menjadi angka murni
     function parsePrice(val) {
       if (typeof val === 'number') return val;
       if (!val) return 0;
@@ -86,128 +115,4 @@
       container.innerHTML = cats.map(cat => `
         <button 
           onclick="selectCategory('${cat}')"
-          class="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === cat ? 'bg-[#5C4033] text-white' : 'bg-white border border-[#D9CEC1] text-[#5C4033]'}"
-        >
-          ${cat}
-        </button>
-      `).join("");
-    }
-
-    function selectCategory(cat) {
-      selectedCategory = cat;
-      renderCategories();
-      renderMenu();
-    }
-
-    function handleSearch() {
-      searchQuery = document.getElementById("searchInput").value;
-      renderMenu();
-    }
-
-    function addToCart(id) {
-      const item = menuItems.find(i => String(i.ID || i.id) === String(id));
-      if (!item) return;
-      
-      const existing = cart.find(i => String(i.id) === String(id));
-      if (existing) {
-        existing.qty += 1;
-      } else {
-        const name = item.NAMA || item.name || "Produk";
-        const price = parsePrice(item.HARGA || item.price);
-        cart.push({ id: String(id), name, price, qty: 1 });
-      }
-      renderCartBtn();
-    }
-
-    function renderCartBtn() {
-      const container = document.getElementById("cartBtnContainer");
-      const totalItems = cart.reduce((a, b) => a + b.qty, 0);
-      if (totalItems > 0) {
-        container.innerHTML = `
-          <button onclick="sendCartWA()" class="bg-[#5C4033] text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-md">
-            🛒 Pesan (${totalItems})
-          </button>
-        `;
-      } else {
-        container.innerHTML = "";
-      }
-    }
-
-    function sendDirectWA(id) {
-      const item = menuItems.find(i => String(i.ID || i.id) === String(id));
-      if (!item) return;
-      const name = item.NAMA || item.name || "Produk";
-      const price = parsePrice(item.HARGA || item.price);
-      const text = `Halo, saya ingin memesan *${name}* dengan harga Rp ${price.toLocaleString('id-ID')}. Apakah produk ini tersedia?`;
-      window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
-    }
-
-    function sendCartWA() {
-      if (cart.length === 0) return;
-      let text = "Halo, saya ingin pesan menu berikut:\n\n";
-      let total = 0;
-      cart.forEach((item, idx) => {
-        const subtotal = item.price * item.qty;
-        total += subtotal;
-        text += `${idx + 1}. ${item.name} x${item.qty} = Rp ${subtotal.toLocaleString('id-ID')}\n`;
-      });
-      text += `\n*Total Estimasi: Rp ${total.toLocaleString('id-ID')}*`;
-      window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
-    }
-
-    function renderMenu() {
-      const grid = document.getElementById("menuGrid");
-      const filtered = menuItems.filter(item => {
-        const name = item.NAMA || item.name || "";
-        const category = item.KATEGORI || item.category || "";
-        
-        const matchCat = selectedCategory === "Semua" || category === selectedCategory;
-        const matchSearch = name.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchCat && matchSearch;
-      });
-
-      if (filtered.length === 0) {
-        grid.innerHTML = `<p class="text-center text-sm text-[#8C7A6B] py-10 col-span-full">Menu tidak ditemukan.</p>`;
-        return;
-      }
-
-      grid.innerHTML = filtered.map(item => {
-        const id = item.ID || item.id;
-        const name = item.NAMA || item.name || "Salt Bread";
-        const priceNum = parsePrice(item.HARGA || item.price);
-        const priceFormatted = priceNum.toLocaleString('id-ID');
-        const image = item.FOTO || item.image || "https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?w=500";
-        const isOut = String(item.STATUS || item.isAvailable).toUpperCase() === "FALSE" || String(item.STATUS).toLowerCase() === "habis";
-
-        return `
-          <div class="bg-white rounded-2xl p-4 border border-[#E6DFD5] shadow-sm flex gap-4">
-            <img src="${image}" alt="${name}" class="w-24 h-24 object-cover rounded-xl bg-gray-100 flex-shrink-0" />
-            <div class="flex-1 flex flex-col justify-between">
-              <div>
-                <div class="flex justify-between items-start">
-                  <h3 class="font-bold text-[#3D2E24] text-base">${name}</h3>
-                  ${isOut ? `<span class="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold">Habis</span>` : ''}
-                </div>
-                <p class="text-xs text-[#7A695A] mt-1">Salt Bread Premium</p>
-              </div>
-              <div class="flex items-center justify-between mt-3">
-                <span class="font-bold text-sm text-[#5C4033]">Rp ${priceFormatted}</span>
-                <div class="flex gap-1">
-                  <button onclick="addToCart('${id}')" class="bg-[#F3ECE0] text-[#5C4033] px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#E6DFD5]">
-                    + Keranjang
-                  </button>
-                  <button onclick="sendDirectWA('${id}')" class="bg-[#5C4033] text-white px-3 py-1.5 rounded-lg text-xs font-semibold">
-                    Pesan
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    init();
-  </script>
-</body>
-</html>
+          class="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === cat ? 'bg-[#5C4033] text-white' : 'bg-white border
