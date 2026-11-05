@@ -56,13 +56,39 @@
       <div class="p-4 bg-[#FFFDF9] border-b border-[#E6DFD5] flex justify-between items-center">
         <div>
           <h3 class="font-serif-custom font-bold text-lg text-[#3D2E24]">Keranjang Pesanan</h3>
-          <p class="text-xs text-[#8C7A6B]">Atur jumlah pesananmu sebelum checkout</p>
+          <p class="text-xs text-[#8C7A6B]">Lengkapi data diri sebelum checkout</p>
         </div>
         <button onclick="closeCartModal()" class="text-[#8C7A6B] hover:text-[#3D2E24] text-xl font-bold p-2">✕</button>
       </div>
 
-      <!-- List Produk dalam Keranjang -->
-      <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3"></div>
+      <!-- Content Area -->
+      <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+        <!-- List Produk -->
+        <div id="cartItemsList" class="flex flex-col gap-3"></div>
+
+        <!-- Form Data Pemesan -->
+        <div id="customerFormSection" class="bg-white p-4 rounded-xl border border-[#E6DFD5] flex flex-col gap-3">
+          <h4 class="font-bold text-xs text-[#3D2E24] uppercase tracking-wider">Data Pemesan</h4>
+          <div>
+            <label class="block text-xs font-semibold text-[#5C4033] mb-1">Nama Pemesan <span class="text-red-500">*</span></label>
+            <input 
+              type="text" 
+              id="customerNameInput" 
+              placeholder="Ketik nama kamu di sini..." 
+              class="w-full p-2.5 rounded-lg border border-[#D9CEC1] text-xs focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-[#5C4033] mb-1">Catatan Tambahan (Opsional)</label>
+            <textarea 
+              id="customerNoteInput" 
+              rows="2" 
+              placeholder="Contoh: Ambil jam 2 siang / Kemasan dipisah..." 
+              class="w-full p-2.5 rounded-lg border border-[#D9CEC1] text-xs focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
+            ></textarea>
+          </div>
+        </div>
+      </div>
 
       <!-- Footer Pop-up -->
       <div class="p-4 bg-[#FFFDF9] border-t border-[#E6DFD5]">
@@ -107,7 +133,6 @@
       return parseInt(clean, 10) || 0;
     }
 
-    // Menggabungkan Kategori & Rasa secara otomatis
     function getFullName(item) {
       const category = item.KATEGORI || item.category || "Pastry";
       const name = item.NAMA || item.name || "Original";
@@ -199,12 +224,16 @@
     function renderCartModalContent() {
       const listContainer = document.getElementById("cartItemsList");
       const totalPriceContainer = document.getElementById("cartTotalPrice");
+      const formSection = document.getElementById("customerFormSection");
 
       if (cart.length === 0) {
         listContainer.innerHTML = `<p class="text-center text-sm text-[#8C7A6B] py-10">Keranjang masih kosong.</p>`;
         totalPriceContainer.innerText = "Rp 0";
+        if (formSection) formSection.style.display = "none";
         return;
       }
+
+      if (formSection) formSection.style.display = "flex";
 
       let total = 0;
       listContainer.innerHTML = cart.map(item => {
@@ -234,20 +263,50 @@
       if (!item) return;
       const fullName = getFullName(item);
       const price = parsePrice(item.HARGA || item.price);
-      const text = `Halo, saya ingin memesan *${fullName}* (1x) dengan harga Rp ${price.toLocaleString('id-ID')}. Apakah produk ini tersedia?`;
+      
+      const customerName = prompt("Masukkan Nama Kamu untuk memesan:");
+      if (!customerName || customerName.trim() === "") {
+        alert("Nama wajib diisi untuk melakukan pemesanan.");
+        return;
+      }
+
+      let text = `Halo, saya *${customerName.trim()}* ingin memesan:\n\n`;
+      text += `1. *${fullName}* (1x) = Rp ${price.toLocaleString('id-ID')}\n\n`;
+      text += `Apakah produk ini tersedia?`;
+      
       window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
     }
 
     function sendCartWA() {
       if (cart.length === 0) return;
-      let text = "Halo, saya ingin memesan menu berikut:\n\n";
+
+      const customerNameInput = document.getElementById("customerNameInput");
+      const customerNoteInput = document.getElementById("customerNoteInput");
+      
+      const name = customerNameInput ? customerNameInput.value.trim() : "";
+      const note = customerNoteInput ? customerNoteInput.value.trim() : "";
+
+      if (!name) {
+        alert("Mohon isi Nama Kamu terlebih dahulu sebelum pesan.");
+        customerNameInput.focus();
+        return;
+      }
+
+      let text = `Halo, saya *${name}* ingin memesan menu berikut:\n\n`;
       let total = 0;
+
       cart.forEach((item, idx) => {
         const subtotal = item.price * item.qty;
         total += subtotal;
         text += `${idx + 1}. *${item.name}* (${item.qty}x) = Rp ${subtotal.toLocaleString('id-ID')}\n`;
       });
+
       text += `\n*Total Estimasi: Rp ${total.toLocaleString('id-ID')}*`;
+
+      if (note) {
+        text += `\n\n*Catatan:* ${note}`;
+      }
+
       window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
     }
 
@@ -270,7 +329,6 @@
       grid.innerHTML = filtered.map(item => {
         const id = item.ID || item.id;
         const displayName = item.NAMA || item.name || "Original";
-        const fullName = getFullName(item);
         const priceNum = parsePrice(item.HARGA || item.price);
         const priceFormatted = priceNum.toLocaleString('id-ID');
         const image = item.FOTO || item.image || "https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?w=500";
