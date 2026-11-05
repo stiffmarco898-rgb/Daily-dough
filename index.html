@@ -71,6 +71,19 @@
     </div>
   </main>
 
+  <!-- POPUP / MODAL PREVIEW FOTO PRODUK -->
+  <div id="imageOverlay" style="display:none;" onclick="closeImageModal()" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+    <div class="relative max-w-lg w-full bg-white rounded-2xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+      <button onclick="closeImageModal()" class="absolute top-3 right-3 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold hover:bg-black/80 z-10">✕</button>
+      <img id="modalImg" src="" alt="Preview Produk" class="w-full max-h-[70vh] object-contain bg-[#FAF7F2]" />
+      <div class="p-4 bg-white border-t border-[#E6DFD5]">
+        <h3 id="modalTitle" class="font-bold text-[#3D2E24] text-lg"></h3>
+        <p id="modalCategory" class="text-xs text-[#8C7A6B] font-semibold mt-0.5"></p>
+        <p id="modalPrice" class="font-bold text-base text-[#5C4033] mt-2"></p>
+      </div>
+    </div>
+  </div>
+
   <!-- OVERLAY & MODAL KERANJANG -->
   <div id="cartOverlay" style="display:none;" class="fixed inset-0 bg-black/50 z-50 justify-end">
     <div class="bg-[#FAF7F2] w-full max-w-md h-full flex flex-col shadow-2xl ml-auto">
@@ -155,11 +168,14 @@
       return parseInt(clean, 10) || 0;
     }
 
-    // Ekstraksi Foto (Format lh3 Google Drive / URL biasa)
+    // Ekstraksi Foto (Otomatis bersihkan link Drive / lh3 yang memiliki buntut /view)
     function getPhotoUrl(item) {
-      const rawUrl = item.FOTO || item.foto || item.image || item.Image || "";
+      let rawUrl = item.FOTO || item.foto || item.image || item.Image || "";
       if (!rawUrl) return "https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?w=500";
       
+      // Hapus buntut /view atau ?usp=... dari URL
+      rawUrl = rawUrl.split('/view')[0].split('?')[0];
+
       if (rawUrl.includes("drive.google.com/file/d/")) {
         const match = rawUrl.match(/\/d\/([^\/]+)/);
         if (match && match[1]) {
@@ -173,6 +189,28 @@
       const category = item.KATEGORI || item.category || "Pastry";
       const name = item.NAMA || item.name || "Original";
       return `${category} - ${name}`;
+    }
+
+    // FUNGSI PREVIEW FOTO FULLSCREEN
+    function openImageModal(id) {
+      const item = menuItems.find(i => String(i.ID || i.id) === String(id));
+      if (!item) return;
+
+      const photoUrl = getPhotoUrl(item);
+      const displayName = item.NAMA || item.name || "Original";
+      const category = item.KATEGORI || item.category || "Pastry";
+      const priceNum = parsePrice(item.HARGA || item.price);
+
+      document.getElementById("modalImg").src = photoUrl;
+      document.getElementById("modalTitle").innerText = displayName;
+      document.getElementById("modalCategory").innerText = category;
+      document.getElementById("modalPrice").innerText = `Rp ${priceNum.toLocaleString('id-ID')}`;
+
+      document.getElementById("imageOverlay").style.display = "flex";
+    }
+
+    function closeImageModal() {
+      document.getElementById("imageOverlay").style.display = "none";
     }
 
     function renderCategories() {
@@ -391,7 +429,13 @@
 
         return `
           <div class="bg-white rounded-2xl p-4 border border-[#E6DFD5] shadow-sm flex gap-4">
-            <img src="${image}" alt="${displayName}" class="w-24 h-24 object-cover rounded-xl bg-gray-100 flex-shrink-0" />
+            <img 
+              src="${image}" 
+              alt="${displayName}" 
+              onclick="openImageModal('${id}')" 
+              class="w-24 h-24 object-cover rounded-xl bg-gray-100 flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity" 
+              title="Klik untuk lihat foto lebih jelas"
+            />
             <div class="flex-1 flex flex-col justify-between">
               <div>
                 <div class="flex justify-between items-start">
