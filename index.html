@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flour & Butter - Katalog Pastry</title>
+  <title>Daily Dough - A Little Joy in Every Bite</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
   <style>
@@ -37,8 +37,8 @@
   <header class="bg-[#FFFDF9] border-b border-[#E6DFD5] sticky top-0 z-10 shadow-sm">
     <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
       <div>
-        <h1 class="font-serif-custom text-2xl font-bold text-[#3D2E24]">Flour & Butter</h1>
-        <p class="text-xs text-[#8C7A6B]">Artisan Pastry & Salt Bread</p>
+        <h1 class="font-serif-custom text-2xl font-bold text-[#3D2E24]">Daily Dough</h1>
+        <p class="text-xs text-[#8C7A6B] italic font-serif-custom">A Little Joy in Every Bite</p>
       </div>
       <div id="cartBtnContainer"></div>
     </div>
@@ -46,8 +46,9 @@
 
   <!-- Hero Banner -->
   <section class="bg-[#F3ECE0] py-8 px-4 text-center border-b border-[#E6DFD5]">
-    <h2 class="font-serif-custom text-3xl font-bold text-[#3D2E24] mb-2">Freshly Baked Every Day</h2>
-    <p class="text-sm text-[#6E5D4F] max-w-md mx-auto">Nikmati kelembutan Salt Bread dan aneka pastry olahan bahan premium pilihan.</p>
+    <h2 class="font-serif-custom text-3xl font-bold text-[#3D2E24] mb-2">Daily Dough</h2>
+    <p class="text-sm text-[#6E5D4F] max-w-md mx-auto italic font-serif-custom mb-1">"A Little Joy in Every Bite"</p>
+    <p class="text-xs text-[#8C7A6B] max-w-md mx-auto">Nikmati kelembutan Salt Bread dan aneka pastry olahan bahan premium pilihan fresh setiap hari.</p>
   </section>
 
   <!-- Filter & Search -->
@@ -183,7 +184,6 @@
       renderMenu();
     }
 
-    // PENGELOLAAN KERANJANG DENGAN ANIMASI
     function addToCart(id, btnElement) {
       const item = menuItems.find(i => String(i.ID || i.id) === String(id));
       if (!item) return;
@@ -198,7 +198,6 @@
         cart.push({ id: String(id), name: fullName, price, image, qty: 1 });
       }
 
-      // Animasi feedback tombol
       if (btnElement) {
         btnElement.classList.add("animate-pop", "bg-emerald-600", "text-white");
         btnElement.classList.remove("bg-[#F3ECE0]", "text-[#5C4033]");
@@ -311,7 +310,7 @@
         return;
       }
 
-      let text = `Halo, saya *${customerName.trim()}* ingin memesan:\n\n`;
+      let text = `Halo Daily Dough, saya *${customerName.trim()}* ingin memesan:\n\n`;
       text += `1. *${fullName}* (1x) = Rp ${price.toLocaleString('id-ID')}\n\n`;
       text += `Apakah produk ini tersedia?`;
       
@@ -333,7 +332,7 @@
         return;
       }
 
-      let text = `Halo, saya *${name}* ingin memesan menu berikut:\n\n`;
+      let text = `Halo Daily Dough, saya *${name}* ingin memesan menu berikut:\n\n`;
       let total = 0;
 
       cart.forEach((item, idx) => {
