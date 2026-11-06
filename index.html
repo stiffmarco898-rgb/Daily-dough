@@ -51,15 +51,24 @@
         <p class="text-[11px] text-[#8C7A6B] dark:text-[#B8A89A] italic font-serif-custom">A Little Joy in Every Bite</p>
       </div>
       
-      <div class="flex items-center gap-2">
-        <!-- Tombol Dark Mode Toggle -->
+      <div class="flex items-center gap-3">
+        <!-- Switch Slider Dark Mode Keren -->
         <button 
           onclick="toggleDarkMode()" 
-          id="darkModeBtn"
-          class="w-8 h-8 rounded-full bg-[#F3ECE0] dark:bg-[#3D322C] text-[#5C4033] dark:text-[#F3ECE0] flex items-center justify-center text-sm shadow-sm transition-all"
-          title="Ubah Mode Tampilan"
+          aria-label="Toggle Dark Mode"
+          class="relative w-14 h-7 rounded-full bg-[#E6DFD5] dark:bg-[#3D322C] p-1 transition-colors duration-300 flex items-center shadow-inner cursor-pointer"
         >
-          🌙
+          <!-- Ikon Kiri & Kanan (Latar Belakang Slider) -->
+          <span class="absolute left-1.5 text-[10px]">☀️</span>
+          <span class="absolute right-1.5 text-[10px]">🌙</span>
+
+          <!-- Lingkaran Membal (Slider Knob) -->
+          <div 
+            id="sliderKnob"
+            class="w-5 h-5 rounded-full bg-white dark:bg-[#D4A373] shadow-md transform transition-transform duration-300 flex items-center justify-center text-[10px] z-10 translate-x-0 dark:translate-x-7"
+          >
+            <span id="knobIcon">☀️</span>
+          </div>
         </button>
 
         <!-- Tombol Keranjang -->
@@ -213,31 +222,31 @@
     let searchQuery = "";
     let isDark = false;
 
-    // FITUR DARK MODE TOGGLE & SAVE
+    // FITUR DARK MODE TOGGLE & SLIDER ANIMATION
+    function updateSliderUI() {
+      const knob = document.getElementById("sliderKnob");
+      const knobIcon = document.getElementById("knobIcon");
+      if (isDark) {
+        document.documentElement.classList.add("dark");
+        if (knob) knob.style.transform = "translateX(28px)";
+        if (knobIcon) knobIcon.innerText = "🌙";
+      } else {
+        document.documentElement.classList.remove("dark");
+        if (knob) knob.style.transform = "translateX(0px)";
+        if (knobIcon) knobIcon.innerText = "☀️";
+      }
+    }
+
     function initDarkMode() {
       const savedTheme = localStorage.getItem("daily_dough_theme");
-      if (savedTheme === "dark") {
-        isDark = true;
-        document.documentElement.classList.add("dark");
-        document.getElementById("darkModeBtn").innerText = "☀️";
-      } else {
-        isDark = false;
-        document.documentElement.classList.remove("dark");
-        document.getElementById("darkModeBtn").innerText = "🌙";
-      }
+      isDark = savedTheme === "dark";
+      updateSliderUI();
     }
 
     function toggleDarkMode() {
       isDark = !isDark;
-      if (isDark) {
-        document.documentElement.classList.add("dark");
-        localStorage.setItem("daily_dough_theme", "dark");
-        document.getElementById("darkModeBtn").innerText = "☀️";
-      } else {
-        document.documentElement.classList.remove("dark");
-        localStorage.setItem("daily_dough_theme", "light");
-        document.getElementById("darkModeBtn").innerText = "🌙";
-      }
+      localStorage.setItem("daily_dough_theme", isDark ? "dark" : "light");
+      updateSliderUI();
       renderCategories(); // Re-render warna tombol
     }
 
