@@ -11,7 +11,7 @@
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FAF7F2; color: #4A3B32; }
     .font-serif-custom { font-family: 'Playfair Display', serif; }
 
-    /* Sembunyikan scrollbar di HP tapi tetap bisa digeser halus */
+    /* Sembunyikan scrollbar di HP tapi tetap bisa digeser */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -61,7 +61,7 @@
     </div>
   </section>
 
-  <!-- Filter & Search (Desain Compact) -->
+  <!-- Filter & Search (Di HP Geser Samping, Di Laptop Terbungkus Rapi) -->
   <div class="max-w-4xl mx-auto px-4 mt-4">
     <!-- Input Search -->
     <input 
@@ -72,8 +72,8 @@
       class="w-full p-2.5 rounded-xl border border-[#D9CEC1] bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
     />
 
-    <!-- Horizontal Pill Category Scroll (Compact) -->
-    <div id="categoryContainer" class="flex gap-1.5 overflow-x-auto mt-3 pb-1 no-scrollbar"></div>
+    <!-- Category Pills: HP = Scroll Samping, Laptop = Wrap Otomatis -->
+    <div id="categoryContainer" class="flex sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-x-visible mt-3 pb-1 no-scrollbar"></div>
   </div>
 
   <!-- Menu Grid -->
@@ -180,6 +180,7 @@
       }
       renderCategories();
       renderMenu();
+      enableMouseWheelScroll();
     }
 
     function parsePrice(val) {
@@ -215,6 +216,18 @@
       return String(rec).trim() === "1";
     }
 
+    // Scroll dengan Roda Mouse di Laptop
+    function enableMouseWheelScroll() {
+      const container = document.getElementById("categoryContainer");
+      if (!container) return;
+      container.addEventListener("wheel", (evt) => {
+        if (window.innerWidth < 640) { // Hanya aktif di layar kecil jika tidak ter-wrap
+          evt.preventDefault();
+          container.scrollLeft += evt.deltaY;
+        }
+      });
+    }
+
     function openImageModal(id) {
       const item = menuItems.find(i => String(i.ID || i.id) === String(id));
       if (!item) return;
@@ -236,7 +249,6 @@
       document.getElementById("imageOverlay").style.display = "none";
     }
 
-    // Render Pill Buttons yang Ringkas & Rapi
     function renderCategories() {
       const dynamicCats = [...new Set(menuItems.map(i => i.KATEGORI || i.category).filter(Boolean))];
       const cats = ["⭐ Recommend", "Semua", ...dynamicCats];
