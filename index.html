@@ -48,8 +48,13 @@
   <!-- Hero Banner -->
   <section class="bg-[#F3ECE0] py-8 px-4 text-center border-b border-[#E6DFD5]">
     <h2 class="font-serif-custom text-3xl font-bold text-[#3D2E24] mb-2">Daily Dough</h2>
-    <p class="text-sm text-[#6E5D4F] max-w-md mx-auto italic font-serif-custom mb-1">"A Little Joy in Every Bite"</p>
-    <p class="text-xs text-[#8C7A6B] max-w-md mx-auto">Nikmati kelembutan Salt Bread dan aneka pastry olahan bahan premium pilihan fresh setiap hari.</p>
+    <p class="text-sm text-[#6E5D4F] max-w-md mx-auto italic font-serif-custom mb-2">"A Little Joy in Every Bite"</p>
+    <p class="text-xs text-[#8C7A6B] max-w-md mx-auto mb-3">Nikmati kelembutan Salt Bread dan aneka pastry olahan bahan premium pilihan fresh setiap hari.</p>
+    
+    <!-- BADGE INFO PRE ORDER DI BANNER -->
+    <div class="inline-flex items-center gap-1.5 bg-[#FFFDF9] border border-[#D9CEC1] px-3 py-1.5 rounded-full shadow-sm text-xs font-semibold text-[#5C4033]">
+      <span>⏳</span> Sistem Pre-Order (PO 2-3 Hari setelah konfirmasi pesanan)
+    </div>
   </section>
 
   <!-- Filter & Search -->
@@ -101,6 +106,15 @@
         <!-- List Produk -->
         <div id="cartItemsList" class="flex flex-col gap-3"></div>
 
+        <!-- INFO BOX PRE ORDER DI KERANJANG -->
+        <div id="poInfoBox" class="bg-[#FFF8EF] border border-[#E8D6C3] p-3 rounded-xl flex items-start gap-2.5">
+          <span class="text-base">📅</span>
+          <div>
+            <h5 class="text-xs font-bold text-[#5C4033]">Informasi Pre-Order (PO)</h5>
+            <p class="text-[11px] text-[#7A695A] leading-relaxed mt-0.5">Semua produk dibuat fresh. Estimasi pengerjaan <strong>2-3 hari</strong> terhitung setelah konfirmasi pesanan.</p>
+          </div>
+        </div>
+
         <!-- Form Data Pemesan -->
         <div id="customerFormSection" class="bg-white p-4 rounded-xl border border-[#E6DFD5] flex flex-col gap-3">
           <h4 class="font-bold text-xs text-[#3D2E24] uppercase tracking-wider">Data Pemesan</h4>
@@ -118,7 +132,7 @@
             <textarea 
               id="customerNoteInput" 
               rows="2" 
-              placeholder="Contoh: Ambil jam 2 siang / Kemasan dipisah..." 
+              placeholder="Contoh: Ambil tanggal 15 jam 2 siang / Kemasan dipisah..." 
               class="w-full p-2.5 rounded-lg border border-[#D9CEC1] text-xs focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
             ></textarea>
           </div>
@@ -140,7 +154,7 @@
 
   <script>
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrrbr2QRQFvzos5Q7ZsAZfrzPe1JZq-2S9RJksOc5oZd09cy2TpxfjN5uAdTyNwMEoqw/exec";
-    const WA_NUMBER = "62895612284170";
+    const WA_NUMBER = "6281909008736";
 
     let menuItems = [];
     let cart = [];
@@ -168,12 +182,10 @@
       return parseInt(clean, 10) || 0;
     }
 
-    // Ekstraksi Foto (Otomatis bersihkan link Drive / lh3 yang memiliki buntut /view)
     function getPhotoUrl(item) {
       let rawUrl = item.FOTO || item.foto || item.image || item.Image || "";
       if (!rawUrl) return "https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?w=500";
       
-      // Hapus buntut /view atau ?usp=... dari URL
       rawUrl = rawUrl.split('/view')[0].split('?')[0];
 
       if (rawUrl.includes("drive.google.com/file/d/")) {
@@ -191,7 +203,6 @@
       return `${category} - ${name}`;
     }
 
-    // FUNGSI PREVIEW FOTO FULLSCREEN
     function openImageModal(id) {
       const item = menuItems.find(i => String(i.ID || i.id) === String(id));
       if (!item) return;
@@ -318,15 +329,18 @@
       const listContainer = document.getElementById("cartItemsList");
       const totalPriceContainer = document.getElementById("cartTotalPrice");
       const formSection = document.getElementById("customerFormSection");
+      const poBox = document.getElementById("poInfoBox");
 
       if (cart.length === 0) {
         listContainer.innerHTML = `<p class="text-center text-sm text-[#8C7A6B] py-10">Keranjang masih kosong.</p>`;
         totalPriceContainer.innerText = "Rp 0";
         if (formSection) formSection.style.display = "none";
+        if (poBox) poBox.style.display = "none";
         return;
       }
 
       if (formSection) formSection.style.display = "flex";
+      if (poBox) poBox.style.display = "flex";
 
       let total = 0;
       listContainer.innerHTML = cart.map(item => {
@@ -365,7 +379,8 @@
 
       let text = `Halo Daily Dough, saya *${customerName.trim()}* ingin memesan:\n\n`;
       text += `1. *${fullName}* (1x) = Rp ${price.toLocaleString('id-ID')}\n\n`;
-      text += `Apakah produk ini tersedia?`;
+      text += `_*(Catatan: Saya memahami estimasi PO 2-3 hari terhitung setelah konfirmasi pesanan)*_\n\n`;
+      text += `Apakah pesanan ini bisa diproses?`;
       
       window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
     }
@@ -395,9 +410,10 @@
       });
 
       text += `\n*Total Estimasi: Rp ${total.toLocaleString('id-ID')}*`;
+      text += `\n\n_*(Catatan: PO 2-3 hari terhitung setelah konfirmasi pesanan)*_`;
 
       if (note) {
-        text += `\n\n*Catatan:* ${note}`;
+        text += `\n*Catatan Pemesan:* ${note}`;
       }
 
       window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
