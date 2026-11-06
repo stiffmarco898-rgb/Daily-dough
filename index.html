@@ -11,6 +11,10 @@
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FAF7F2; color: #4A3B32; }
     .font-serif-custom { font-family: 'Playfair Display', serif; }
 
+    /* Sembunyikan scrollbar di HP tapi tetap bisa digeser halus */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
     /* Efek Animasi Membal Tombol */
     @keyframes btnPop {
       0% { transform: scale(1); }
@@ -36,57 +40,45 @@
 
   <!-- Header -->
   <header class="bg-[#FFFDF9] border-b border-[#E6DFD5] sticky top-0 z-10 shadow-sm">
-    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+    <div class="max-w-4xl mx-auto px-4 py-3.5 flex items-center justify-between">
       <div>
         <h1 class="font-serif-custom text-2xl font-bold text-[#3D2E24]">Daily Dough</h1>
-        <p class="text-xs text-[#8C7A6B] italic font-serif-custom">A Little Joy in Every Bite</p>
+        <p class="text-[11px] text-[#8C7A6B] italic font-serif-custom">A Little Joy in Every Bite</p>
       </div>
       <div id="cartBtnContainer"></div>
     </div>
   </header>
 
   <!-- Hero Banner -->
-  <section class="bg-[#F3ECE0] py-8 px-4 text-center border-b border-[#E6DFD5]">
-    <h2 class="font-serif-custom text-3xl font-bold text-[#3D2E24] mb-2">Daily Dough</h2>
-    <p class="text-sm text-[#6E5D4F] max-w-md mx-auto italic font-serif-custom mb-2">"A Little Joy in Every Bite"</p>
-    <p class="text-xs text-[#8C7A6B] max-w-md mx-auto mb-3">Nikmati kelembutan Salt Bread dan aneka pastry olahan bahan premium pilihan fresh setiap hari.</p>
+  <section class="bg-[#F3ECE0] py-6 px-4 text-center border-b border-[#E6DFD5]">
+    <h2 class="font-serif-custom text-2xl sm:text-3xl font-bold text-[#3D2E24] mb-1">Daily Dough</h2>
+    <p class="text-xs sm:text-sm text-[#6E5D4F] max-w-md mx-auto italic font-serif-custom mb-2">"A Little Joy in Every Bite"</p>
+    <p class="text-[11px] sm:text-xs text-[#8C7A6B] max-w-md mx-auto mb-2.5">Nikmati kelembutan Salt Bread dan aneka pastry olahan bahan premium pilihan fresh setiap hari.</p>
     
     <!-- BADGE INFO PRE ORDER DI BANNER -->
-    <div class="inline-flex items-center gap-1.5 bg-[#FFFDF9] border border-[#D9CEC1] px-3 py-1.5 rounded-full shadow-sm text-xs font-semibold text-[#5C4033]">
+    <div class="inline-flex items-center gap-1.5 bg-[#FFFDF9] border border-[#D9CEC1] px-3 py-1 rounded-full shadow-sm text-[11px] font-semibold text-[#5C4033]">
       <span>⏳</span> Sistem Pre-Order (PO 2-3 Hari setelah konfirmasi pesanan)
     </div>
   </section>
 
-  <!-- Filter & Search (Desain Baru Bergaya Grid / Responsive Dropdown) -->
-  <div class="max-w-4xl mx-auto px-4 mt-6">
-    <div class="flex flex-col sm:flex-row gap-3">
-      <!-- Input Search -->
-      <div class="flex-1">
-        <input 
-          type="text" 
-          id="searchInput" 
-          placeholder="Lagi pengen makan apa..." 
-          oninput="handleSearch()"
-          class="w-full p-3 rounded-xl border border-[#D9CEC1] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
-        />
-      </div>
+  <!-- Filter & Search (Desain Compact) -->
+  <div class="max-w-4xl mx-auto px-4 mt-4">
+    <!-- Input Search -->
+    <input 
+      type="text" 
+      id="searchInput" 
+      placeholder="Lagi pengen makan apa..." 
+      oninput="handleSearch()"
+      class="w-full p-2.5 rounded-xl border border-[#D9CEC1] bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
+    />
 
-      <!-- Dropdown Pilih Kategori -->
-      <div class="w-full sm:w-56">
-        <select 
-          id="categorySelect" 
-          onchange="handleCategorySelect(this.value)"
-          class="w-full p-3 rounded-xl border border-[#D9CEC1] bg-white text-sm text-[#5C4033] font-semibold focus:outline-none focus:ring-2 focus:ring-[#8C7A6B] cursor-pointer"
-        >
-          <!-- Option di-render otomatis dari JavaScript -->
-        </select>
-      </div>
-    </div>
+    <!-- Horizontal Pill Category Scroll (Compact) -->
+    <div id="categoryContainer" class="flex gap-1.5 overflow-x-auto mt-3 pb-1 no-scrollbar"></div>
   </div>
 
   <!-- Menu Grid -->
-  <main class="max-w-4xl mx-auto px-4 mt-6">
-    <div id="menuGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <main class="max-w-4xl mx-auto px-4 mt-5">
+    <div id="menuGrid" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
       <p class="text-center text-sm text-[#8C7A6B] py-10 col-span-full">Memuat katalog menu...</p>
     </div>
   </main>
@@ -186,7 +178,7 @@
       } catch (err) {
         console.error("Gagal mengambil data dari Google Sheets:", err);
       }
-      renderCategoriesSelect();
+      renderCategories();
       renderMenu();
     }
 
@@ -244,21 +236,32 @@
       document.getElementById("imageOverlay").style.display = "none";
     }
 
-    // Render Dropdown Kategori (Ramah HP)
-    function renderCategoriesSelect() {
+    // Render Pill Buttons yang Ringkas & Rapi
+    function renderCategories() {
       const dynamicCats = [...new Set(menuItems.map(i => i.KATEGORI || i.category).filter(Boolean))];
-      const cats = ["⭐ Recommend", "Semua Menu", ...dynamicCats];
+      const cats = ["⭐ Recommend", "Semua", ...dynamicCats];
       
-      const selectEl = document.getElementById("categorySelect");
-      selectEl.innerHTML = cats.map(cat => `
-        <option value="${cat}" ${selectedCategory === cat ? 'selected' : ''}>
-          ${cat === "Semua Menu" ? "📋 Semua Menu" : (cat.startsWith("⭐") ? cat : "🥐 " + cat)}
-        </option>
-      `).join("");
+      const container = document.getElementById("categoryContainer");
+      container.innerHTML = cats.map(cat => {
+        const isSelected = selectedCategory === cat;
+        return `
+          <button 
+            onclick="selectCategory('${cat}')"
+            class="px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
+              isSelected 
+                ? 'bg-[#5C4033] text-white shadow-sm' 
+                : 'bg-white border border-[#E6DFD5] text-[#6E5D4F] hover:bg-[#F3ECE0]'
+            }"
+          >
+            ${cat}
+          </button>
+        `;
+      }).join("");
     }
 
-    function handleCategorySelect(cat) {
-      selectedCategory = cat === "Semua Menu" ? "Semua" : cat;
+    function selectCategory(cat) {
+      selectedCategory = cat;
+      renderCategories();
       renderMenu();
     }
 
@@ -323,7 +326,7 @@
           <button 
             id="mainCartBtn"
             onclick="openCartModal()" 
-            class="bg-[#5C4033] text-white px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-2 shadow-md hover:bg-[#4A3328] transition-all ${shouldAnimate ? 'animate-cart-bounce' : ''}"
+            class="bg-[#5C4033] text-white px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-md hover:bg-[#4A3328] transition-all ${shouldAnimate ? 'animate-cart-bounce' : ''}"
           >
             🛒 Keranjang (${totalItems})
           </button>
@@ -452,28 +455,28 @@
         const hasBadgeRec = isRecommended(item);
 
         return `
-          <div class="bg-white rounded-2xl p-4 border border-[#E6DFD5] shadow-sm flex gap-4 relative">
+          <div class="bg-white rounded-2xl p-3.5 border border-[#E6DFD5] shadow-sm flex gap-3.5 relative">
             <img 
               src="${image}" 
               alt="${displayName}" 
               onclick="openImageModal('${id}')" 
-              class="w-24 h-24 object-cover rounded-xl bg-gray-100 flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity" 
+              class="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl bg-gray-100 flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity" 
               title="Klik untuk lihat foto lebih jelas"
             />
             <div class="flex-1 flex flex-col justify-between">
               <div>
                 <div class="flex justify-between items-start gap-1">
-                  <h3 class="font-bold text-[#3D2E24] text-base">${displayName}</h3>
+                  <h3 class="font-bold text-[#3D2E24] text-sm sm:text-base leading-snug">${displayName}</h3>
                   <div class="flex gap-1 flex-shrink-0">
-                    ${hasBadgeRec ? `<span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold">⭐ Best</span>` : ''}
-                    ${isOut ? `<span class="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold">Habis</span>` : ''}
+                    ${hasBadgeRec ? `<span class="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold">⭐ Best</span>` : ''}
+                    ${isOut ? `<span class="text-[9px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold">Habis</span>` : ''}
                   </div>
                 </div>
-                <p class="text-xs text-[#7A695A] mt-1">${item.KATEGORI || 'Pastry'}</p>
+                <p class="text-[11px] text-[#7A695A] mt-0.5">${item.KATEGORI || 'Pastry'}</p>
               </div>
-              <div class="flex items-center justify-between mt-3">
-                <span class="font-bold text-sm text-[#5C4033]">Rp ${priceFormatted}</span>
-                <button onclick="addToCart('${id}', this)" class="bg-[#F3ECE0] text-[#5C4033] px-4 py-2 rounded-xl text-xs font-semibold hover:bg-[#E6DFD5] transition-all shadow-sm">
+              <div class="flex items-center justify-between mt-2.5">
+                <span class="font-bold text-xs sm:text-sm text-[#5C4033]">Rp ${priceFormatted}</span>
+                <button onclick="addToCart('${id}', this)" class="bg-[#F3ECE0] text-[#5C4033] px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-[#E6DFD5] transition-all shadow-sm">
                   + Keranjang
                 </button>
               </div>
