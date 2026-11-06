@@ -31,7 +31,7 @@
       animation: btnPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    /* Efek Animasi Bounce Tombol Keranjang */
+    /* Efek Animasi Bounce Tombol Keranjang Header */
     @keyframes cartBounce {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-6px); }
@@ -400,8 +400,8 @@
       }
 
       saveCart();
-      renderCartBtn(true);
-      renderMenu(); // Re-render menu agar tombol berubah jadi kontrol qty
+      renderCartBtn(true); // Memicu animasi bounce keranjang di header
+      renderMenu();
     }
 
     function updateQty(id, change) {
@@ -414,9 +414,10 @@
       }
 
       saveCart();
-      renderCartBtn(false);
+      // Jika penambahan item (change > 0), pemicu animasi bounce
+      renderCartBtn(change > 0);
       renderCartModalContent();
-      renderMenu(); // Re-render menu agar qty di kartu menu juga ter-update
+      renderMenu();
 
       if (cart.length === 0) {
         closeCartModal();
@@ -433,8 +434,10 @@
       }
       
       if (btn && shouldAnimate) {
+        btn.classList.remove("animate-cart-bounce");
+        // Reflow trik agar animasi bisa dipicu berulang kali saat diklik cepat
+        void btn.offsetWidth;
         btn.classList.add("animate-cart-bounce");
-        setTimeout(() => btn.classList.remove("animate-cart-bounce"), 400);
       }
     }
 
@@ -571,7 +574,6 @@
         const isOut = String(item.STATUS || item.isAvailable).toUpperCase() === "FALSE" || String(item.STATUS).toLowerCase() === "habis";
         const hasBadgeRec = isRecommended(item);
 
-        // Cek apakah item ini sudah ada di keranjang
         const cartItem = cart.find(i => String(i.id) === String(id));
         const itemQty = cartItem ? cartItem.qty : 0;
 
