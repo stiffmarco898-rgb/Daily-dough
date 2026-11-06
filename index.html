@@ -97,18 +97,29 @@
     </div>
   </section>
 
-  <!-- Filter & Search -->
+  <!-- Filter & Search (Dual Navigation: Dropdown + Chips) -->
   <div class="max-w-4xl mx-auto px-4 mt-4 w-full">
-    <!-- Input Search -->
-    <input 
-      type="text" 
-      id="searchInput" 
-      placeholder="Lagi pengen makan apa..." 
-      oninput="handleSearch()"
-      class="w-full p-2.5 rounded-xl border border-[#D9CEC1] dark:border-[#3D322C] bg-white dark:bg-[#2A221E] text-xs sm:text-sm text-[#3D2E24] dark:text-[#EAE3D9] focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
-    />
+    <div class="flex gap-2">
+      <!-- Input Search -->
+      <input 
+        type="text" 
+        id="searchInput" 
+        placeholder="Lagi pengen makan apa..." 
+        oninput="handleSearch()"
+        class="flex-1 p-2.5 rounded-xl border border-[#D9CEC1] dark:border-[#3D322C] bg-white dark:bg-[#2A221E] text-xs sm:text-sm text-[#3D2E24] dark:text-[#EAE3D9] focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
+      />
 
-    <!-- Category Pills -->
+      <!-- Dropdown Kategori di Sebelah Searchbar -->
+      <select 
+        id="categorySelect" 
+        onchange="selectCategory(this.value)"
+        class="w-32 sm:w-44 p-2.5 rounded-xl border border-[#D9CEC1] dark:border-[#3D322C] bg-white dark:bg-[#2A221E] text-xs text-[#5C4033] dark:text-[#D4A373] font-semibold focus:outline-none focus:ring-2 focus:ring-[#8C7A6B] cursor-pointer"
+      >
+        <!-- Di-render dinamis oleh JavaScript -->
+      </select>
+    </div>
+
+    <!-- Category Pills Chips -->
     <div id="categoryContainer" class="flex sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-x-visible mt-3 pb-1 no-scrollbar"></div>
   </div>
 
@@ -352,10 +363,12 @@
       document.getElementById("imageOverlay").style.display = "none";
     }
 
+    // Render Dua Jenis Navigasi Kategori (Dropdown & Pills Chips)
     function renderCategories() {
       const dynamicCats = [...new Set(menuItems.map(i => i.KATEGORI || i.category).filter(Boolean))];
       const cats = ["⭐ Recommend", "Semua", ...dynamicCats];
       
+      // 1. Render Pill Chips
       const container = document.getElementById("categoryContainer");
       container.innerHTML = cats.map(cat => {
         const isSelected = selectedCategory === cat;
@@ -372,6 +385,16 @@
           </button>
         `;
       }).join("");
+
+      // 2. Render Dropdown Samping Search
+      const selectEl = document.getElementById("categorySelect");
+      if (selectEl) {
+        selectEl.innerHTML = cats.map(cat => `
+          <option value="${cat}" ${selectedCategory === cat ? 'selected' : ''}>
+            ${cat}
+          </option>
+        `).join("");
+      }
     }
 
     function selectCategory(cat) {
@@ -400,7 +423,7 @@
       }
 
       saveCart();
-      renderCartBtn(true); // Memicu animasi bounce keranjang di header
+      renderCartBtn(true);
       renderMenu();
     }
 
@@ -414,7 +437,6 @@
       }
 
       saveCart();
-      // Jika penambahan item (change > 0), pemicu animasi bounce
       renderCartBtn(change > 0);
       renderCartModalContent();
       renderMenu();
@@ -435,7 +457,6 @@
       
       if (btn && shouldAnimate) {
         btn.classList.remove("animate-cart-bounce");
-        // Reflow trik agar animasi bisa dipicu berulang kali saat diklik cepat
         void btn.offsetWidth;
         btn.classList.add("animate-cart-bounce");
       }
