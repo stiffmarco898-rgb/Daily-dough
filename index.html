@@ -57,16 +57,31 @@
     </div>
   </section>
 
-  <!-- Filter & Search -->
+  <!-- Filter & Search (Desain Baru Bergaya Grid / Responsive Dropdown) -->
   <div class="max-w-4xl mx-auto px-4 mt-6">
-    <input 
-      type="text" 
-      id="searchInput" 
-      placeholder="Lagi pengen makan apa..." 
-      oninput="handleSearch()"
-      class="w-full p-3 rounded-xl border border-[#D9CEC1] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
-    />
-    <div id="categoryContainer" class="flex gap-2 overflow-x-auto mt-4 pb-2 scrollbar-none"></div>
+    <div class="flex flex-col sm:flex-row gap-3">
+      <!-- Input Search -->
+      <div class="flex-1">
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="Lagi pengen makan apa..." 
+          oninput="handleSearch()"
+          class="w-full p-3 rounded-xl border border-[#D9CEC1] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
+        />
+      </div>
+
+      <!-- Dropdown Pilih Kategori -->
+      <div class="w-full sm:w-56">
+        <select 
+          id="categorySelect" 
+          onchange="handleCategorySelect(this.value)"
+          class="w-full p-3 rounded-xl border border-[#D9CEC1] bg-white text-sm text-[#5C4033] font-semibold focus:outline-none focus:ring-2 focus:ring-[#8C7A6B] cursor-pointer"
+        >
+          <!-- Option di-render otomatis dari JavaScript -->
+        </select>
+      </div>
+    </div>
   </div>
 
   <!-- Menu Grid -->
@@ -158,7 +173,7 @@
 
     let menuItems = [];
     let cart = [];
-    let selectedCategory = "⭐ Recommend"; // DEFAULT PERTAMA KALI MASUK
+    let selectedCategory = "⭐ Recommend";
     let searchQuery = "";
 
     async function init() {
@@ -171,7 +186,7 @@
       } catch (err) {
         console.error("Gagal mengambil data dari Google Sheets:", err);
       }
-      renderCategories();
+      renderCategoriesSelect();
       renderMenu();
     }
 
@@ -229,24 +244,21 @@
       document.getElementById("imageOverlay").style.display = "none";
     }
 
-    function renderCategories() {
+    // Render Dropdown Kategori (Ramah HP)
+    function renderCategoriesSelect() {
       const dynamicCats = [...new Set(menuItems.map(i => i.KATEGORI || i.category).filter(Boolean))];
-      const cats = ["⭐ Recommend", "Semua", ...dynamicCats];
+      const cats = ["⭐ Recommend", "Semua Menu", ...dynamicCats];
       
-      const container = document.getElementById("categoryContainer");
-      container.innerHTML = cats.map(cat => `
-        <button 
-          onclick="selectCategory('${cat}')"
-          class="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === cat ? 'bg-[#5C4033] text-white' : 'bg-white border border-[#D9CEC1] text-[#5C4033]'}"
-        >
-          ${cat}
-        </button>
+      const selectEl = document.getElementById("categorySelect");
+      selectEl.innerHTML = cats.map(cat => `
+        <option value="${cat}" ${selectedCategory === cat ? 'selected' : ''}>
+          ${cat === "Semua Menu" ? "📋 Semua Menu" : (cat.startsWith("⭐") ? cat : "🥐 " + cat)}
+        </option>
       `).join("");
     }
 
-    function selectCategory(cat) {
-      selectedCategory = cat;
-      renderCategories();
+    function handleCategorySelect(cat) {
+      selectedCategory = cat === "Semua Menu" ? "Semua" : cat;
       renderMenu();
     }
 
@@ -412,7 +424,6 @@
         const name = item.NAMA || item.name || "";
         const category = item.KATEGORI || item.category || "";
         
-        // Logika Filter Kategori (Recommend vs Semua vs Kategori Spesifik)
         let matchCat = false;
         if (selectedCategory === "⭐ Recommend") {
           matchCat = isRecommended(item);
