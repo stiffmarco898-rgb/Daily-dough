@@ -45,7 +45,16 @@
         <h1 class="font-serif-custom text-2xl font-bold text-[#3D2E24]">Daily Dough</h1>
         <p class="text-[11px] text-[#8C7A6B] italic font-serif-custom">A Little Joy in Every Bite</p>
       </div>
-      <div id="cartBtnContainer"></div>
+      <div id="cartBtnContainer">
+        <!-- Tombol Keranjang Tetap Selalu Ada -->
+        <button 
+          id="mainCartBtn"
+          onclick="openCartModal()" 
+          class="bg-[#5C4033] text-white px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-md hover:bg-[#4A3328] transition-all"
+        >
+          🛒 Keranjang (0)
+        </button>
+      </div>
     </div>
   </header>
 
@@ -180,6 +189,7 @@
       }
       renderCategories();
       renderMenu();
+      renderCartBtn(false);
       enableMouseWheelScroll();
     }
 
@@ -216,12 +226,11 @@
       return String(rec).trim() === "1";
     }
 
-    // Scroll dengan Roda Mouse di Laptop
     function enableMouseWheelScroll() {
       const container = document.getElementById("categoryContainer");
       if (!container) return;
       container.addEventListener("wheel", (evt) => {
-        if (window.innerWidth < 640) { // Hanya aktif di layar kecil jika tidak ter-wrap
+        if (window.innerWidth < 640) {
           evt.preventDefault();
           container.scrollLeft += evt.deltaY;
         }
@@ -329,23 +338,20 @@
       }
     }
 
+    // Render Tombol Keranjang (Permanen Selalu Muncul)
     function renderCartBtn(shouldAnimate = false) {
       const container = document.getElementById("cartBtnContainer");
       const totalItems = cart.reduce((a, b) => a + b.qty, 0);
 
-      if (totalItems > 0) {
-        container.innerHTML = `
-          <button 
-            id="mainCartBtn"
-            onclick="openCartModal()" 
-            class="bg-[#5C4033] text-white px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-md hover:bg-[#4A3328] transition-all ${shouldAnimate ? 'animate-cart-bounce' : ''}"
-          >
-            🛒 Keranjang (${totalItems})
-          </button>
-        `;
-      } else {
-        container.innerHTML = "";
-      }
+      container.innerHTML = `
+        <button 
+          id="mainCartBtn"
+          onclick="openCartModal()" 
+          class="bg-[#5C4033] text-white px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-md hover:bg-[#4A3328] transition-all ${shouldAnimate ? 'animate-cart-bounce' : ''}"
+        >
+          🛒 Keranjang (${totalItems})
+        </button>
+      `;
     }
 
     function openCartModal() {
@@ -366,7 +372,13 @@
       const poBox = document.getElementById("poInfoBox");
 
       if (cart.length === 0) {
-        listContainer.innerHTML = `<p class="text-center text-sm text-[#8C7A6B] py-10">Keranjang masih kosong.</p>`;
+        listContainer.innerHTML = `
+          <div class="text-center py-12 flex flex-col items-center justify-center">
+            <span class="text-4xl mb-2">🛒</span>
+            <p class="text-sm font-bold text-[#3D2E24]">Keranjang Masih Kosong</p>
+            <p class="text-xs text-[#8C7A6B] mt-1">Pilih menu favoritmu dan tambahkan ke keranjang ya!</p>
+          </div>
+        `;
         totalPriceContainer.innerText = "Rp 0";
         if (formSection) formSection.style.display = "none";
         if (poBox) poBox.style.display = "none";
@@ -400,7 +412,10 @@
     }
 
     function sendCartWA() {
-      if (cart.length === 0) return;
+      if (cart.length === 0) {
+        alert("Keranjang kamu masih kosong. Silakan pilih menu terlebih dahulu.");
+        return;
+      }
 
       const customerNameInput = document.getElementById("customerNameInput");
       const customerNoteInput = document.getElementById("customerNoteInput");
