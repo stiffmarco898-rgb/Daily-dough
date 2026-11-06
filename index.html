@@ -365,26 +365,6 @@
       totalPriceContainer.innerText = `Rp ${total.toLocaleString('id-ID')}`;
     }
 
-    function sendDirectWA(id) {
-      const item = menuItems.find(i => String(i.ID || i.id) === String(id));
-      if (!item) return;
-      const fullName = getFullName(item);
-      const price = parsePrice(item.HARGA || item.price);
-      
-      const customerName = prompt("Masukkan Nama Kamu untuk memesan:");
-      if (!customerName || customerName.trim() === "") {
-        alert("Nama wajib diisi untuk melakukan pemesanan.");
-        return;
-      }
-
-      let text = `Halo Daily Dough, saya *${customerName.trim()}* ingin memesan:\n\n`;
-      text += `1. *${fullName}* (1x) = Rp ${price.toLocaleString('id-ID')}\n\n`;
-      text += `_*(Catatan: Saya memahami estimasi PO 2-3 hari terhitung setelah konfirmasi pesanan)*_\n\n`;
-      text += `Apakah pesanan ini bisa diproses?`;
-      
-      window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
-    }
-
     function sendCartWA() {
       if (cart.length === 0) return;
 
@@ -462,14 +442,9 @@
               </div>
               <div class="flex items-center justify-between mt-3">
                 <span class="font-bold text-sm text-[#5C4033]">Rp ${priceFormatted}</span>
-                <div class="flex gap-1">
-                  <button onclick="addToCart('${id}', this)" class="bg-[#F3ECE0] text-[#5C4033] px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#E6DFD5] transition-all">
-                    + Keranjang
-                  </button>
-                  <button onclick="sendDirectWA('${id}')" class="bg-[#5C4033] text-white px-3 py-1.5 rounded-lg text-xs font-semibold">
-                    Pesan
-                  </button>
-                </div>
+                <button onclick="addToCart('${id}', this)" class="bg-[#F3ECE0] text-[#5C4033] px-4 py-2 rounded-xl text-xs font-semibold hover:bg-[#E6DFD5] transition-all shadow-sm">
+                  + Keranjang
+                </button>
               </div>
             </div>
           </div>
