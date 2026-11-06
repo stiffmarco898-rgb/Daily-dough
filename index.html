@@ -158,7 +158,7 @@
 
     let menuItems = [];
     let cart = [];
-    let selectedCategory = "Semua";
+    let selectedCategory = "⭐ Recommend"; // DEFAULT PERTAMA KALI MASUK
     let searchQuery = "";
 
     async function init() {
@@ -203,6 +203,11 @@
       return `${category} - ${name}`;
     }
 
+    function isRecommended(item) {
+      const rec = item.RECOMMEND || item.recommend || item.Recommend || "";
+      return String(rec).trim() === "1";
+    }
+
     function openImageModal(id) {
       const item = menuItems.find(i => String(i.ID || i.id) === String(id));
       if (!item) return;
@@ -225,7 +230,9 @@
     }
 
     function renderCategories() {
-      const cats = ["Semua", ...new Set(menuItems.map(i => i.KATEGORI || i.category).filter(Boolean))];
+      const dynamicCats = [...new Set(menuItems.map(i => i.KATEGORI || i.category).filter(Boolean))];
+      const cats = ["⭐ Recommend", "Semua", ...dynamicCats];
+      
       const container = document.getElementById("categoryContainer");
       container.innerHTML = cats.map(cat => `
         <button 
@@ -405,7 +412,16 @@
         const name = item.NAMA || item.name || "";
         const category = item.KATEGORI || item.category || "";
         
-        const matchCat = selectedCategory === "Semua" || category === selectedCategory;
+        // Logika Filter Kategori (Recommend vs Semua vs Kategori Spesifik)
+        let matchCat = false;
+        if (selectedCategory === "⭐ Recommend") {
+          matchCat = isRecommended(item);
+        } else if (selectedCategory === "Semua") {
+          matchCat = true;
+        } else {
+          matchCat = category === selectedCategory;
+        }
+
         const matchSearch = name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchCat && matchSearch;
       });
@@ -422,9 +438,10 @@
         const priceFormatted = priceNum.toLocaleString('id-ID');
         const image = getPhotoUrl(item);
         const isOut = String(item.STATUS || item.isAvailable).toUpperCase() === "FALSE" || String(item.STATUS).toLowerCase() === "habis";
+        const hasBadgeRec = isRecommended(item);
 
         return `
-          <div class="bg-white rounded-2xl p-4 border border-[#E6DFD5] shadow-sm flex gap-4">
+          <div class="bg-white rounded-2xl p-4 border border-[#E6DFD5] shadow-sm flex gap-4 relative">
             <img 
               src="${image}" 
               alt="${displayName}" 
@@ -434,9 +451,12 @@
             />
             <div class="flex-1 flex flex-col justify-between">
               <div>
-                <div class="flex justify-between items-start">
+                <div class="flex justify-between items-start gap-1">
                   <h3 class="font-bold text-[#3D2E24] text-base">${displayName}</h3>
-                  ${isOut ? `<span class="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold">Habis</span>` : ''}
+                  <div class="flex gap-1 flex-shrink-0">
+                    ${hasBadgeRec ? `<span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold">⭐ Best</span>` : ''}
+                    ${isOut ? `<span class="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold">Habis</span>` : ''}
+                  </div>
                 </div>
                 <p class="text-xs text-[#7A695A] mt-1">${item.KATEGORI || 'Pastry'}</p>
               </div>
