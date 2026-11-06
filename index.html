@@ -195,7 +195,29 @@
     let selectedCategory = "⭐ Recommend";
     let searchQuery = "";
 
+    // MENGAMBIL KERANJANG TERSIMPAN DARI LOCALSTORAGE
+    function loadSavedCart() {
+      try {
+        const saved = localStorage.getItem("daily_dough_cart");
+        if (saved) {
+          cart = JSON.parse(saved);
+        }
+      } catch (e) {
+        console.error("Gagal membaca keranjang tersimpan:", e);
+      }
+    }
+
+    // MENYIMPAN KERANJANG KE LOCALSTORAGE
+    function saveCart() {
+      try {
+        localStorage.setItem("daily_dough_cart", JSON.stringify(cart));
+      } catch (e) {
+        console.error("Gagal menyimpan keranjang:", e);
+      }
+    }
+
     async function init() {
+      loadSavedCart(); // Load keranjang lama jika ada
       try {
         const res = await fetch(APPS_SCRIPT_URL);
         const data = await res.json();
@@ -323,6 +345,8 @@
         cart.push({ id: String(id), name: fullName, price, image, qty: 1 });
       }
 
+      saveCart(); // Simpan perubahan ke localStorage
+
       if (btnElement) {
         btnElement.classList.add("animate-pop", "bg-emerald-600", "text-white");
         btnElement.classList.remove("bg-[#F3ECE0]", "text-[#5C4033]");
@@ -347,6 +371,8 @@
       if (item.qty <= 0) {
         cart = cart.filter(i => String(i.id) !== String(id));
       }
+
+      saveCart(); // Simpan perubahan ke localStorage
       
       renderCartBtn(false);
       renderCartModalContent();
@@ -462,7 +488,13 @@
         text += `\n*Catatan Pemesan:* ${note}`;
       }
 
+      // Kosongkan keranjang di localStorage setelah checkout berhasil
+      cart = [];
+      saveCart();
+      renderCartBtn(false);
+
       window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
+      closeCartModal();
     }
 
     function renderMenu() {
