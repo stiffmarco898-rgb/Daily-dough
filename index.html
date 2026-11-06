@@ -45,27 +45,27 @@
 
   <!-- Header -->
   <header class="bg-[#FFFDF9] dark:bg-[#2A221E] border-b border-[#E6DFD5] dark:border-[#3D322C] sticky top-0 z-10 shadow-sm transition-colors">
-    <div class="max-w-4xl mx-auto px-4 py-3.5 flex items-center justify-between">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
       <div>
-        <h1 class="font-serif-custom text-2xl font-bold text-[#3D2E24] dark:text-[#F3ECE0]">Daily Dough</h1>
-        <p class="text-[11px] text-[#8C7A6B] dark:text-[#B8A89A] italic font-serif-custom">A Little Joy in Every Bite</p>
+        <h1 class="font-serif-custom text-xl sm:text-2xl font-bold text-[#3D2E24] dark:text-[#F3ECE0]">Daily Dough</h1>
+        <p class="text-[10px] sm:text-[11px] text-[#8C7A6B] dark:text-[#B8A89A] italic font-serif-custom">A Little Joy in Every Bite</p>
       </div>
       
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3">
         <!-- Switch Slider Dark Mode Keren -->
         <button 
           onclick="toggleDarkMode()" 
           aria-label="Toggle Dark Mode"
-          class="relative w-14 h-7 rounded-full bg-[#E6DFD5] dark:bg-[#3D322C] p-1 transition-colors duration-300 flex items-center shadow-inner cursor-pointer"
+          class="relative w-12 sm:w-14 h-6 sm:h-7 rounded-full bg-[#E6DFD5] dark:bg-[#3D322C] p-1 transition-colors duration-300 flex items-center shadow-inner cursor-pointer flex-shrink-0"
         >
-          <!-- Ikon Kiri & Kanan (Latar Belakang Slider) -->
-          <span class="absolute left-1.5 text-[10px]">☀️</span>
-          <span class="absolute right-1.5 text-[10px]">🌙</span>
+          <!-- Ikon Kiri & Kanan -->
+          <span class="absolute left-1 sm:left-1.5 text-[9px] sm:text-[10px]">☀️</span>
+          <span class="absolute right-1 sm:right-1.5 text-[9px] sm:text-[10px]">🌙</span>
 
           <!-- Lingkaran Membal (Slider Knob) -->
           <div 
             id="sliderKnob"
-            class="w-5 h-5 rounded-full bg-white dark:bg-[#D4A373] shadow-md transform transition-transform duration-300 flex items-center justify-center text-[10px] z-10 translate-x-0 dark:translate-x-7"
+            class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white dark:bg-[#D4A373] shadow-md transform transition-transform duration-300 flex items-center justify-center text-[9px] sm:text-[10px] z-10 translate-x-0 dark:translate-x-6 sm:dark:translate-x-7"
           >
             <span id="knobIcon">☀️</span>
           </div>
@@ -76,9 +76,9 @@
           <button 
             id="mainCartBtn"
             onclick="openCartModal()" 
-            class="bg-[#5C4033] dark:bg-[#D4A373] text-white dark:text-[#1E1815] px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-md hover:bg-[#4A3328] transition-all"
+            class="bg-[#5C4033] dark:bg-[#D4A373] text-white dark:text-[#1E1815] px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 shadow-md hover:bg-[#4A3328] transition-all"
           >
-            🛒 Keranjang (0)
+            🛒 <span class="hidden sm:inline">Keranjang </span>(<span id="cartItemCount">0</span>)
           </button>
         </div>
       </div>
@@ -222,13 +222,15 @@
     let searchQuery = "";
     let isDark = false;
 
-    // FITUR DARK MODE TOGGLE & SLIDER ANIMATION
     function updateSliderUI() {
       const knob = document.getElementById("sliderKnob");
       const knobIcon = document.getElementById("knobIcon");
+      const isMobile = window.innerWidth < 640;
+      const shiftX = isMobile ? "24px" : "28px";
+
       if (isDark) {
         document.documentElement.classList.add("dark");
-        if (knob) knob.style.transform = "translateX(28px)";
+        if (knob) knob.style.transform = `translateX(${shiftX})`;
         if (knobIcon) knobIcon.innerText = "🌙";
       } else {
         document.documentElement.classList.remove("dark");
@@ -247,7 +249,7 @@
       isDark = !isDark;
       localStorage.setItem("daily_dough_theme", isDark ? "dark" : "light");
       updateSliderUI();
-      renderCategories(); // Re-render warna tombol
+      renderCategories();
     }
 
     function loadSavedCart() {
@@ -435,15 +437,17 @@
       const container = document.getElementById("cartBtnContainer");
       const totalItems = cart.reduce((a, b) => a + b.qty, 0);
 
-      container.innerHTML = `
-        <button 
-          id="mainCartBtn"
-          onclick="openCartModal()" 
-          class="bg-[#5C4033] dark:bg-[#D4A373] text-white dark:text-[#1E1815] px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-md hover:bg-[#4A3328] transition-all ${shouldAnimate ? 'animate-cart-bounce' : ''}"
-        >
-          🛒 Keranjang (${totalItems})
-        </button>
-      `;
+      const btn = document.getElementById("mainCartBtn");
+      const countSpan = document.getElementById("cartItemCount");
+      
+      if (countSpan) {
+        countSpan.innerText = totalItems;
+      }
+      
+      if (btn && shouldAnimate) {
+        btn.classList.add("animate-cart-bounce");
+        setTimeout(() => btn.classList.remove("animate-cart-bounce"), 400);
+      }
     }
 
     function openCartModal() {
@@ -610,6 +614,7 @@
       }).join("");
     }
 
+    window.addEventListener("resize", updateSliderUI);
     init();
   </script>
 </body>
