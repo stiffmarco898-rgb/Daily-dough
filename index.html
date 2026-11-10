@@ -234,7 +234,7 @@
 
     let menuItems = [];
     let cart = [];
-    let selectedCategory = "Filter Kategori 📂";
+    let selectedCategory = "Filter Menu disini";
     let searchQuery = "";
     let isDark = false;
 
@@ -390,10 +390,10 @@
         `;
       }).join("");
 
-      // 2. Render Dropdown dengan Default Label "Filter Kategori 📂"
+      // 2. Render Dropdown dengan Default Label "Filter Menu disini"
       const selectEl = document.getElementById("categorySelect");
       if (selectEl) {
-        let optionsHTML = `<option value="Filter Kategori 📂" ${selectedCategory === 'Filter Kategori 📂' ? 'selected' : ''}>Filter Kategori 📂</option>`;
+        let optionsHTML = `<option value="Filter Menu disini" ${selectedCategory === 'Filter Menu disini' ? 'selected' : ''}>Filter Menu disini</option>`;
         optionsHTML += cats.map(cat => `
           <option value="${cat}" ${selectedCategory === cat ? 'selected' : ''}>
             ${cat}
@@ -578,7 +578,7 @@
         let matchCat = false;
         if (selectedCategory === "⭐ Recommend") {
           matchCat = isRecommended(item);
-        } else if (selectedCategory === "Semua" || selectedCategory === "Filter Kategori 📂") {
+        } else if (selectedCategory === "Semua" || selectedCategory === "Filter Menu disini") {
           matchCat = true;
         } else {
           matchCat = category === selectedCategory;
