@@ -93,7 +93,7 @@
     
     <!-- BADGE INFO PRE ORDER -->
     <div class="inline-flex items-center gap-1.5 bg-[#FFFDF9] dark:bg-[#332A24] border border-[#D9CEC1] dark:border-[#4A3B32] px-3 py-1 rounded-full shadow-sm text-[11px] font-semibold text-[#5C4033] dark:text-[#EAE3D9]">
-      <span>⏳</span> Sistem Pre-Order (PO 2-3 Hari setelah konfirmasi pesanan)
+      <span>⏳</span> Sistem Pre-Order (PO 2-3 Hari setelah Invoice dikirim)
     </div>
   </section>
 
@@ -187,7 +187,7 @@
           <span class="text-base">📅</span>
           <div>
             <h5 class="text-xs font-bold text-[#5C4033] dark:text-[#D4A373]">Informasi Pre-Order (PO)</h5>
-            <p class="text-[11px] text-[#7A695A] dark:text-[#B8A89A] leading-relaxed mt-0.5">Semua produk dibuat fresh. Estimasi pengerjaan <strong>2-3 hari</strong> terhitung setelah konfirmasi pesanan.</p>
+            <p class="text-[11px] text-[#7A695A] dark:text-[#B8A89A] leading-relaxed mt-0.5">Semua produk dibuat fresh. Estimasi pengerjaan <strong>2-3 hari</strong> terhitung setelah Invoice dikirim.</p>
           </div>
         </div>
 
@@ -549,7 +549,7 @@
       });
 
       text += `\n*Total Estimasi: Rp ${total.toLocaleString('id-ID')}*`;
-      text += `\n\n_*(Catatan: PO 2-3 hari terhitung setelah konfirmasi pesanan)*_`;
+      text += `\n\n_*(Catatan: PO 2-3 hari terhitung setelah Invoice dikirim)*_`;
 
       if (note) {
         text += `\n*Catatan Pemesan:* ${note}`;
