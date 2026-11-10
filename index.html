@@ -372,10 +372,10 @@
       const dynamicCats = [...new Set(menuItems.map(i => i.KATEGORI || i.category).filter(Boolean))];
       const cats = ["⭐ Recommend", "Semua", ...dynamicCats];
       
-      // 1. Render Pill Chips
+      // 1. Render Pill Chips (Secara visual ⭐ Recommend yang aktif jika posisi awal)
       const container = document.getElementById("categoryContainer");
       container.innerHTML = cats.map(cat => {
-        const isSelected = selectedCategory === cat;
+        const isSelected = selectedCategory === cat || (selectedCategory === "Filter Menu disini" && cat === "⭐ Recommend");
         return `
           <button 
             onclick="selectCategory('${cat}')"
@@ -390,7 +390,7 @@
         `;
       }).join("");
 
-      // 2. Render Dropdown dengan Default Label "Filter Menu disini"
+      // 2. Render Dropdown dengan Default Option "Filter Menu disini"
       const selectEl = document.getElementById("categorySelect");
       if (selectEl) {
         let optionsHTML = `<option value="Filter Menu disini" ${selectedCategory === 'Filter Menu disini' ? 'selected' : ''}>Filter Menu disini</option>`;
@@ -576,9 +576,10 @@
         const category = item.KATEGORI || item.category || "";
         
         let matchCat = false;
-        if (selectedCategory === "⭐ Recommend") {
+        // JIKA AWAL DIBUKA (Filter Menu disini) ATAU ⭐ Recommend, MAKA TAMPILKAN MENU RECOMMEND
+        if (selectedCategory === "Filter Menu disini" || selectedCategory === "⭐ Recommend") {
           matchCat = isRecommended(item);
-        } else if (selectedCategory === "Semua" || selectedCategory === "Filter Menu disini") {
+        } else if (selectedCategory === "Semua") {
           matchCat = true;
         } else {
           matchCat = category === selectedCategory;
