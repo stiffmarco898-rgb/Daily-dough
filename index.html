@@ -97,7 +97,7 @@
     </div>
   </section>
 
-  <!-- Filter & Search (Dual Navigation: Dropdown + Chips) -->
+  <!-- Filter & Search -->
   <div class="max-w-4xl mx-auto px-4 mt-4 w-full">
     <div class="flex gap-2">
       <!-- Input Search -->
@@ -109,11 +109,11 @@
         class="flex-1 p-2.5 rounded-xl border border-[#D9CEC1] dark:border-[#3D322C] bg-white dark:bg-[#2A221E] text-xs sm:text-sm text-[#3D2E24] dark:text-[#EAE3D9] focus:outline-none focus:ring-2 focus:ring-[#8C7A6B]"
       />
 
-      <!-- Dropdown Kategori di Sebelah Searchbar -->
+      <!-- Dropdown Filter Kategori -->
       <select 
         id="categorySelect" 
         onchange="selectCategory(this.value)"
-        class="w-32 sm:w-44 p-2.5 rounded-xl border border-[#D9CEC1] dark:border-[#3D322C] bg-white dark:bg-[#2A221E] text-xs text-[#5C4033] dark:text-[#D4A373] font-semibold focus:outline-none focus:ring-2 focus:ring-[#8C7A6B] cursor-pointer"
+        class="w-36 sm:w-48 p-2.5 rounded-xl border border-[#D9CEC1] dark:border-[#3D322C] bg-white dark:bg-[#2A221E] text-xs text-[#5C4033] dark:text-[#D4A373] font-semibold focus:outline-none focus:ring-2 focus:ring-[#8C7A6B] cursor-pointer"
       >
         <!-- Di-render dinamis oleh JavaScript -->
       </select>
@@ -122,7 +122,7 @@
     <!-- Category Pills Chips -->
     <div id="categoryContainer" class="flex sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-x-visible mt-3 pb-1 no-scrollbar"></div>
 
-    <!-- NOTE OPSIONAL (OPSI 2): PETUNJUK KLIK FOTO DI ATAS KATALOG MENU -->
+    <!-- NOTE PETUNJUK KLIK FOTO DI ATAS KATALOG MENU -->
     <p class="text-[11px] text-[#8C7A6B] dark:text-[#B8A89A] mt-2.5 italic flex items-center gap-1">
       💡 <span><em>Tips:</em> Klik foto produk untuk melihat foto lebih jelas.</span>
     </p>
@@ -372,6 +372,7 @@
       const dynamicCats = [...new Set(menuItems.map(i => i.KATEGORI || i.category).filter(Boolean))];
       const cats = ["⭐ Recommend", "Semua", ...dynamicCats];
       
+      // 1. Render Pill Chips
       const container = document.getElementById("categoryContainer");
       container.innerHTML = cats.map(cat => {
         const isSelected = selectedCategory === cat;
@@ -389,17 +390,21 @@
         `;
       }).join("");
 
+      // 2. Render Dropdown dengan Opsi Default "Filter Kategori 📂"
       const selectEl = document.getElementById("categorySelect");
       if (selectEl) {
-        selectEl.innerHTML = cats.map(cat => `
+        let optionsHTML = `<option value="" disabled ${!selectedCategory ? 'selected' : ''}>Filter Kategori 📂</option>`;
+        optionsHTML += cats.map(cat => `
           <option value="${cat}" ${selectedCategory === cat ? 'selected' : ''}>
             ${cat}
           </option>
         `).join("");
+        selectEl.innerHTML = optionsHTML;
       }
     }
 
     function selectCategory(cat) {
+      if (!cat) return;
       selectedCategory = cat;
       renderCategories();
       renderMenu();
